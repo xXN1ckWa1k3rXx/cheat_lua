@@ -20,7 +20,7 @@ My coding skills are not very good, so sometimes the latest version is not as go
 
 ## For Neverlose:
     - Better Neverlose:
-        - Improve Defensive AA (Major)
+        - Rework Defensive AA (Major)
         - Improve Automatic teleport in air
         - Force enable fakelag on doubletap while using Automatic teleport in air 
         - Recode: In order to make the code easier to maintain and modify
