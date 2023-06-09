@@ -16,7 +16,7 @@ My coding skills are not very good, so sometimes the latest version is not as go
 | on plan | - | √ | √ | *The premise is that I have an account* | √ |
 
 # future plans:
-## **Will be executed after June 26th (UTC+8)**
+## **Will be executed after June 30th (UTC+8)**
 
 ## For Neverlose:
     - Better Neverlose:
@@ -38,7 +38,7 @@ My coding skills are not very good, so sometimes the latest version is not as go
         - condition fakelag
         - more *cool* (maybe) visuals
         - misc
-        - Estimated Pricing: 0.99 nle
+        - Estimated Pricing: 0.99~1.25 nle or free
 
 ## For Nixware
     - Elysia (WIP)
