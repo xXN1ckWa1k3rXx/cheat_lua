@@ -1,0 +1,57 @@
+In order to give me more thoughtful coding and let you know my purpose, these are the features I added initially (for the first time) on Elysia
+As stated in README.MD, the price does not exceed 1.25 nle, and the minimum is Free 
+the chance of Free is very small, it depends on the final result and will not be open source [only open source paid branches if I can't fix it]
+
+The final result depends on my technical bottleneck
+
+Ragebot:
+     - Hitchance Modifiers
+     - Jumpscout
+     - Force teleport
+      - Only Head/SP/Baim
+      - Only Head Override Mode
+     - Any more..?
+
+AntiAim:
+     - Build-in:
+           - Conditions antiaim
+           - Manual AA
+           - Lower Body Yaw Fix (Only Standing)
+           - Defensive Exploits AA
+           - Fake Flick
+           - Random jitter rate
+           - Force Defensive in Air (f.k.a Break LC in Air)
+     - Presets (very stupid)
+           - "Slow jitter", "Random jitter", "Random desync jitter" (or more?)
+             - Defensive Jitter
+           - Change preset condition ("Disabled", "A Short Frametime", "Random Frametime","Every round start")
+
+FakeLag:
+     - Conditions fakelag
+     - On Peek
+     - On Shots
+
+Visuals:
+(I have thought too much about this, so the final result is not completely or a cripple)
+     - Indicators
+     - Picture watermark
+     - $500 Indicators
+     - Custom HUD: (May not appear on released)
+              - Team Fortress 2 HUD (All Class and BLU & RED Team) (No 3d player model. i dont know how to hook it and how to render it)
+              - picture hud for some something theme
+     - Viewmodel Changer
+     - Zeus Warning
+     - Crosshair Indicators
+     - AntiAim Arrow
+      - Anim. Breaker
+      - Custom Scope Overlay
+      - Aimbot logger (Console, Chat, Crosshair)
+
+Misc:
+      - Fast Ladder
+      - ClanTag
+      - Killsay
+      - Vote relveals
+      - Bypass sv_pure
+      - Force sv_cheats 1
+     - Unmute Muted Players
