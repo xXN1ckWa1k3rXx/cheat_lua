@@ -16,10 +16,10 @@ My coding skills are not very good, so sometimes the latest version is not as go
 | on plan | - | √ | √ | *The premise is that I have an account* | √ |
 
 # future plans:
-## **Will be executed after June 30th (UTC+8)**
+## **PROJECT STARTING. NOW IS RECODING BETTER NEVERLOSE!**
 
 ## For Neverlose:
-    - Better Neverlose:
+    - Better Neverlose: (Recoding)
         - Rework Defensive AA (Major)
         - Improve Automatic teleport in air
         - Force enable fakelag on doubletap while using Automatic teleport in air
@@ -28,7 +28,6 @@ My coding skills are not very good, so sometimes the latest version is not as go
         - Improve No fakelag on shots
         - Add filck AA
         - Improve indicator
-        - boost resolver (psychological effect) LOL
     
     - Aimbot logger
         - Add more customized logs (WIP)
