@@ -16,37 +16,15 @@ My coding skills are not very good, so sometimes the latest version is not as go
 | on plan | - | √ | √ | *The premise is that I have an account* | √ |
 
 # future plans:
-## **PROJECT STARTING. NOW IS RECODING BETTER NEVERLOSE!**
+## **Elysia is coding**
 
 ## For Neverlose:
-    - Better Neverlose: (Recoding)
-        - Rework Defensive AA (Major)
-        - Improve Automatic teleport in air
-        - Force enable fakelag on doubletap while using Automatic teleport in air
-        - Rework Fast Fall
-        - Recode: In order to make the code easier to maintain and modify
-        - Improve No fakelag on shots
-        - Add filck AA
-        - Improve indicator
-    
-    - Aimbot logger
-        - Add more customized logs (WIP)
-
     - New project: Elysia
         - condition & preset antiaim
         - condition fakelag
         - more *cool* (maybe) visuals
         - misc
         - Estimated Pricing: 0.99~1.25 nle or free
-
-## For Nixware
-    - Elysia (WIP)
-        - preset antiaim (100%)
-        - condition fakelag (5%)
-        - visuals
-        - misc
-
-    - aimbot logger
 
 # currently available works
 ## For Neverlose:
