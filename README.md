@@ -16,15 +16,9 @@ My coding skills are not very good, so sometimes the latest version is not as go
 | on plan | - | √ | √ | *The premise is that I have an account* | √ |
 
 # future plans:
-## **Elysia is coding**
 
 ## For Neverlose:
-    - New project: Elysia
-        - condition & preset antiaim (Done)
-        - condition fakelag (Done)
-        - more *cool* (maybe) visuals
-        - misc
-        - Estimated Pricing: 0.99nle (Pre-released in 0.22nle or 0.55nle?)
+    None.
 
 # currently available works
 ## For Neverlose:
