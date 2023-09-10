@@ -11,17 +11,16 @@ My coding skills are not very good, so sometimes the latest version is not as go
 # What are these scripts for?
 |  -   | Neverlose  | Nixware | Fatality | Gamesense | Primordial |
 |  ----   | ----  | ---- | ---- | ---- | ---- |
-| available  | √ | - | √ | - | - |
-| not available  | - | x | - | x | - |
+| available  | √ | - | √ | 1 | - |
+| not available  | - | x | - | - | - |
 | on plan | - | √ | √ | *The premise is that I have an account* | √ |
 
-# future plans:
+# Pending matters:
 
-## For Neverlose:
-    None.
+    Recode all neverlose scripts.
+        - Because cheating Luajit causes many problems after updating, causing serious performance problems
 
-# currently available works
-## For Neverlose:
+# For Neverlose:
 [Better Neverlose](https://en.neverlose.cc/market/item?id=3cgb75);
 
 [aimbot logger](https://en.neverlose.cc/market/item?id=jfXzCz);
@@ -29,7 +28,7 @@ My coding skills are not very good, so sometimes the latest version is not as go
 [Half life 2 Indicator](market.neverlose.cc/9ccoBp);
 
 
-## For Fatality:
+# For Fatality:
 [aimbot logger](https://fatality.win/threads/aimbot-logger-2-0.13014/);
 
 [crosshair logger](https://fatality.win/threads/crosshair-logger-1-0.13061/);
