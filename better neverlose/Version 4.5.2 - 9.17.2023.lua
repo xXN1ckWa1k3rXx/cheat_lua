@@ -18,7 +18,7 @@
     Updated date: 9/9/2023
 ]]
 
-local version = "9/9/2023 - 4.5.2"
+local version = "9/17/2023 - 4.5.2"
 _DEBUG = true
 
 ----------------------- FFI CODE ---------------------
