@@ -11,12 +11,46 @@ The development of Elysia release took about 20 days, but during these 20 days I
 
 And Now, I only spent about fifteen days coding Seteria, but it was almost Recoding (almost recoding). And it work better.
 
+And Thanks Nhex, he give me a chance to improved myself.
+
 Now my NL For CSGO sub has expired. i only have for cs2 sub (23d), so
 
 ## What is Next?
-For Elysia.lua, unless For cs2 will take a long time to be released, we will not consider updating it for the time being. Please consider using Seteria, sorry.
+I will continue to update Seteria. Regarding Elysia, Ignore it for the time being (but not abandon it) until Seteria.lua is perfected. The reasons are shown in the outline below.
 
-Seteria still has a long way to go (including Elysia). i dont plan to give up on these two projects, as well as Better Neverlose.
+**Seteria.lua and Elysia.lua still have support.**
+
+**Seteria.lua and Elysia.lua is support CS:GO and CS2**
 
 ## What is between Elysia.lua and Seteria?
 There are many differences, Seteria is recoded, but there is no Elysia src in it. I don't intend to treat Elysia and Seteria as the same Script.
+
+Antiaim settings and visuals has different so far, and many.
+
+| - | Elysia.lua | Seteria.lua |
+|  ----   | ----  | ---- |
+| Condition AntiAim | √ | √ |
+| Preset AntiAim | √ | - |
+| Condition Fakelag | √ | x |
+| Defensive AntiAim | √ | √ (Conditions) |
+| Slient shots | √ | √ |
+| Faster Ladder | √ | √ |
+| Advanced Ragebot | √ | √ (More options) |
+| Super Toss | x | √ |
+| Fast Fall | √ | √ |
+| Auto Teleport | x | √ |
+| Dormant Aimbot | x | √ |
+| Air Exploit | - | √ |
+| Watermark | √ | √ |
+| Scope corsshair | - | √ |
+| Indicators | - | √ |
+| Keybinds | - | √ |
+| Spectators Window | - | √ |
+| Visuals | Solus UI | Modern |
+| Debug Window | - | √ |
+| GS Logger | - | √ |
+| Crosshair logger | - | √ |
+| Events Sounds | - | √ |
+| Config system | - | - |
+
+That it is.
