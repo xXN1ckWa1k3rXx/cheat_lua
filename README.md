@@ -11,14 +11,21 @@ My coding skills are not very good, so sometimes the latest version is not as go
 # What are these scripts for?
 |  -   | Neverlose  | Nixware | Fatality | Gamesense | Primordial |
 |  ----   | ----  | ---- | ---- | ---- | ---- |
-| available  | √ | - | √ | 1 | - |
+| available  | √ | - | √ | √ | - |
 | not available  | - | x | - | - | - |
-| on plan | - | √ | √ | *The premise is that I have an account* | √ |
+| on plan | - | √ | √ | √ | √ |
 
 # Pending matters:
 
-    Recode all neverlose scripts.
-        - Because cheating Luajit causes many problems after updating, causing serious performance problems
+    GameSense
+        - Better Gamesense :)
+        - Menu Lib
+
+    Neverlose
+        - Better Neverlose update:
+            - Rework defensive
+            - readd fast fall
+            etc.
 
 # For Neverlose:
 [Better Neverlose](https://en.neverlose.cc/market/item?id=3cgb75);
