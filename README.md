@@ -17,15 +17,13 @@ My coding skills are not very good, so sometimes the latest version is not as go
 
 # Pending matters:
 
-    GameSense
-        - Better Gamesense :)
-        - Menu Lib
+~~GameSense~~
+        ~~- Better Gamesense :)~~
+        ~~- Menu Lib~~
 
-    Neverlose
-        - Better Neverlose update:
-            - Rework defensive
-            - readd fast fall
-            etc.
+### Since CS2 'A Call to Arms' update. CS:GO will not longer available (Server connections and inventory) 
+
+So I don’t want to waste this energy on a stand-alone game that has completely stopped supporting it.
 
 # For Neverlose:
 [Better Neverlose](https://en.neverlose.cc/market/item?id=3cgb75);
