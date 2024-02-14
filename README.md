@@ -1,4 +1,4 @@
-![image](https://github.com/xXN1ckWa1k3rXx/cheat_lua/assets/85390877/6dc722a4-faa1-4cca-bd0c-8623f7a5f4f0)# xXYu3_zH3nGL1ngXx's scripts repository
+# xXYu3_zH3nGL1ngXx's scripts repository
 
 # What is this?
 Used to store my scripts.
