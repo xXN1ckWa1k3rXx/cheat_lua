@@ -1,4 +1,4 @@
-# xXYu3_zH3nGL1ngXx's scripts repository
+![image](https://github.com/xXN1ckWa1k3rXx/cheat_lua/assets/85390877/6dc722a4-faa1-4cca-bd0c-8623f7a5f4f0)# xXYu3_zH3nGL1ngXx's scripts repository
 
 # What is this?
 Used to store my scripts.
@@ -19,9 +19,7 @@ My coding skills are not very good, so sometimes the latest version is not as go
 
 GameSense
 
-[Better GameSense](cheat_lua/gamesense plan.md)
-
-### Since CS2 'A Call to Arms' update. CS:GO will not longer available (Server connections and inventory) 
+[Better GameSense]([cheat_lua/gamesense plan.md](https://github.com/xXN1ckWa1k3rXx/cheat_lua/blob/main/gamesense%20plan.md))
 
 So I don’t want to waste this energy on a stand-alone game that has completely stopped supporting it.
 
