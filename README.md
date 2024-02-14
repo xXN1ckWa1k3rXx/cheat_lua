@@ -18,12 +18,8 @@ My coding skills are not very good, so sometimes the latest version is not as go
 # Pending matters:
 
 GameSense
+([Better GameSense](https://github.com/xXN1ckWa1k3rXx/cheat_lua/blob/main/gamesense%20plan.md))
 
-[Better GameSense](cheat_lua/gamesense plan.md)
-
-### Since CS2 'A Call to Arms' update. CS:GO will not longer available (Server connections and inventory) 
-
-So I don’t want to waste this energy on a stand-alone game that has completely stopped supporting it.
 
 # For Neverlose:
 [Better Neverlose](https://en.neverlose.cc/market/item?id=3cgb75);
