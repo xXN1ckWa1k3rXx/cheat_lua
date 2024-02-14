@@ -17,9 +17,9 @@ My coding skills are not very good, so sometimes the latest version is not as go
 
 # Pending matters:
 
-~~GameSense~~
-        ~~- Better Gamesense :)~~
-        ~~- Menu Lib~~
+GameSense
+
+[Better GameSense](cheat_lua/gamesense plan.md)
 
 ### Since CS2 'A Call to Arms' update. CS:GO will not longer available (Server connections and inventory) 
 
