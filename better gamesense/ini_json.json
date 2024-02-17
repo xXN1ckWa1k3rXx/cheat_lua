@@ -1,5 +1,9 @@
 {
     "status": "success",
-    "version": "Alpha 0.1",
-    "Date": "2/13/2024"
+
+    "latest_update_alpha": "2/17/2024",
+    "latest_update_live": "Unavailable",
+
+    "live": "none",
+    "alpha": "2_17_2024"
 }
