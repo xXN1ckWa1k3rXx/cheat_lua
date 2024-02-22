@@ -339,7 +339,7 @@ nick.items = {
         def_item = (function()
             for i, v in ipairs (nick.data.conditions) do
                 nick.data.defensive_aa_item[i] = {
-                    def_enabled = ui.new_checkbox("aa", "anti-aimbot angles", ("%s - Enabled defensive antiaim [WIP Not working]"):format(v)),
+                    def_enabled = ui.new_checkbox("aa", "anti-aimbot angles", ("%s - Enabled defensive antiaim"):format(v)),
                     mode = ui.new_combobox("aa", "anti-aimbot angles", ("%s - Mode"):format(v), {"Disabled", "On Peek", "Always", "Enabled on auto stopping"}),
                     pitch = ui.new_combobox("aa", "anti-aimbot angles", ("%s - Pitch"):format(v), {"Default", "Up", "Down", "Static", "45°", "Jitter", "Random", "Defensive"}),
                     __ticks_p = ui.new_slider("aa", "anti-aimbot angles", ("%s - Delay tick(s)"):format(v), 0, 45, 0, true, "t"),
