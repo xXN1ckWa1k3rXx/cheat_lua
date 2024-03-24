@@ -29,7 +29,7 @@ local data = {
 
 ui.new_label("lua", "a", "Better GameSense\a00FFFFFF Loader\aFFFFFFFF")
 ui.new_label("lua", "a", "Author: xXYu3_zH3nGL1ngXx")
-local branch = ui.new_combobox("lua", "a", "Branch", {"live", "alpha"})
+local branch = ui.new_combobox("lua", "a", "Branch", {"live", "alpha", "Untested beta"})
 
 local connect__l = ui.new_button("lua", "a", "Github", function(self)
     panorama.open().SteamOverlayAPI.OpenExternalBrowserURL("https://github.com/xXN1ckWa1k3rXx/cheat_lua")
@@ -52,10 +52,14 @@ local connect__l = ui.new_button("lua", "a", "Connect to server", function(self)
             data.version = ui.get(branch)
             data.date = decoded_data.latest_update_live
             data.file = decoded_data.live
-        else
+        elseif ui.get(branch) == "alpha" then
             data.version = ui.get(branch)
             data.date = decoded_data.latest_update_alpha
             data.file = decoded_data.alpha
+        elseif ui.get(branch) == "Untested beta" then
+            data.version = ui.get(branch)
+            data.date = decoded_data.latest_update_untested_beta
+            data.file = decoded_data["Untested beta"]
         end
 
         menu()

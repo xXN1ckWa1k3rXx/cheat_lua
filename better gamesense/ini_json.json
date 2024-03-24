@@ -3,7 +3,9 @@
 
     "latest_update_alpha": "3/17/2024",
     "latest_update_live": "3/17/2024",
+    "latest_update_untested_beta": "Unavailable",
 
     "live": "3_17_2024",
-    "alpha": "3_17_2024"
+    "alpha": "3_17_2024",
+    "Untested beta": "beta"
 }
