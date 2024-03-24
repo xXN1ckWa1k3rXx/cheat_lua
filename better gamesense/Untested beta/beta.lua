@@ -18,8 +18,8 @@ local __version = "Untested Beta"
 __UPDATELOG = {
     "Untested Beta WARNING:",
     "This script is extremely unstable",
-    "Events sound has not been tested in the game."
-    "",
+    "Events sound has not been tested in the game.",
+    "    ",
     "Any issues report to me."
 }
 
