@@ -1,5 +1,8 @@
 # xXYu3_zH3nGL1ngXx's scripts repository
 
+# Why archive this depository?
+CS:GO HvH is dead now. unarchive when what software release their lua script system
+
 # What is this?
 Used to store my scripts.
 The main purpose is to save the progress and facilitate the rollback version.
