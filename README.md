@@ -2,6 +2,8 @@
 
 # Why Better Neverlose has been removed?
 ![image](https://github.com/user-attachments/assets/5c1100cf-3285-46d2-b0a3-29c92f742557)
+
+
 Hopely 5.0 (Fully Recode) will fix those issues
 5.0 Release on 2025 Q1 
 
