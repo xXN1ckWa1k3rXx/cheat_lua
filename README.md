@@ -1,7 +1,11 @@
 # xXYu3_zH3nGL1ngXx's scripts repository
 
-# Why archive this depository?
-CS:GO HvH is dead now. unarchive when what software release their lua script system
+# Why Better Neverlose has been removed?
+![image](https://github.com/user-attachments/assets/5c1100cf-3285-46d2-b0a3-29c92f742557)
+Hopely 5.0 (Fully Recode) will fix those issues
+5.0 Release on 2025 Q1 
+
+## Please find other scripts to use instead of better nl
 
 # What is this?
 Used to store my scripts.
@@ -25,7 +29,7 @@ GameSense
 
 
 # For Neverlose:
-[Better Neverlose](https://en.neverlose.cc/market/item?id=3cgb75);
+[Better Neverlose](https://en.neverlose.cc/market/item?id=3cgb75);  *Hidden by mods
 
 [aimbot logger](https://en.neverlose.cc/market/item?id=jfXzCz);
 
