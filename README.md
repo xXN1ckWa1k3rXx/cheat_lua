@@ -1,24 +1,12 @@
 # xXYu3_zH3nGL1ngXx's scripts repository
 
-### An update is in progress
-This update will change the repository directory to take advantage of git's version control features.
+
+### Updated Completely
+
+This update changed the repository directory to take advantage of git's version control features.
 
 Due to the many changes, this will completely change the repository directory and the automatic update of better neverlose.
 
-
-
-**Please re-pull the repository for updates after the official release of Better Neverlose 5.0**
-
-# Why was Better Neverlose removed from the shelves?
-![image](https://github.com/user-attachments/assets/9417f40a-0d8c-4580-a5a8-b19289c1a675)
-
-EDITED: Market item has been hidden. The scripts in the repository are still available
-
-Those issues will be fix in 5.0 version
-
-5.0 Release on 2025 Q1 
-
-### Please find other scripts to use instead of better nl
 
 # What is this?
 Used to store my scripts.
