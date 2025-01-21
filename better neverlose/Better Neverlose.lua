@@ -13,12 +13,12 @@
 ]]
 
 --[[ 
-    Better Neverlose Recode v5 - recoded
+    Better Neverlose Recode v5.1 - recoded
     author: xXYu3_zH3nGL1ngXx
-    Updated date: 1/20/2025
+    Updated date: 1/21/2025
 ]]
 
-local version_ = "1/20/2025 - 5"
+local version_ = "1/21/2025 - 5.1"
 local ffi = require "ffi"
 local http_lib = require "neverlose/http_lib"
 
@@ -223,6 +223,8 @@ nick.ref = {
     world = {
         main = ui.find("Visuals", "World", "Main"),
         other = ui.find("Visuals", "World", "Other"),
+        thridperson = ui.find("Visuals", "World", "Main", "Force Thirdperson"),
+        distance = ui.find("Visuals", "World", "Main", "Force Thirdperson", "Distance"),
     },
 
     misc = {
@@ -231,6 +233,7 @@ nick.ref = {
         in_game = ui.find("Miscellaneous", "Main", "In-Game"),
         other = ui.find("Miscellaneous", "Main", "Other"),
         buybot = ui.find("Miscellaneous", "Main", "Buybot"),
+        buybot_enabled = ui.find("Miscellaneous", "Main", "BuyBot", "Enabled"),
         air_strafe = ui.find("Miscellaneous", "Main", "Movement", "Air Strafe"),
     }
 }
@@ -297,6 +300,7 @@ nick.create_elements = {
     },
 
     visuals = {
+        thridperson = nick.ref.world.thridperson:create(),
         viewmodel = nick.items.visuals.viewmodel:create(),
         debug = nick.items.visuals.debug:create(),
         event_sound = nick.items.visuals.event_sound:create(),
@@ -348,6 +352,11 @@ nick.elements = {
         open_folder = nick.create_elements.visuals.event_sound:button("Open sound folder", function()  
             open_explorer("C:\\Windows\\explorer.exe " .. common.get_game_directory() .. "\\sound")
         end, true)
+    },
+
+    thridperson = {
+        animation = nick.create_elements.visuals.thridperson:switch("Animation camera"),
+        distance = nick.create_elements.visuals.thridperson:slider("~ Distance", 15, 250, 110),
     },
 
     viewmodel = {
@@ -462,6 +471,8 @@ nick.menu_visible = function ()
     nick.elements.defensive.spin:visibility(nick.elements.defensive.yaw:get() == "Spin")
     nick.elements.defensive.yaw_jitter_mode:visibility(nick.elements.defensive.yaw:get() == "Jitter")
     nick.elements.defensive.yaw_jitter:visibility(nick.elements.defensive.yaw:get() == "Jitter")
+
+    nick.ref.world.distance:visibility(false)
 
     nick.elements.event_sound.miss_file:visibility(nick.elements.event_sound.event:get("Missed shot"))
     nick.elements.event_sound.taser_file:visibility(nick.elements.event_sound.event:get("Taser kill"))
@@ -692,7 +703,7 @@ nick.manual_aa = function ()
         offset_override = 0
     elseif manual_aa == "Right" then
         offset_override = 90
-    elseif manual_aa == "Forwards" then
+    elseif manual_aa == "Forward" then
         offset_override = 180
     elseif manual_aa == "Freestanding" then
         fs_override = true
@@ -731,6 +742,22 @@ nick.air_exploit = function ()
         nick.ref.antiaim.fd:override(nil)
         nick.ref.antiaim.limit:override(nil)
     end
+end
+
+nick.thrid_person_camera = function ()
+
+    local distance = nick.elements.thridperson.distance:get()
+    local thrid_person = nick.ref.world.thridperson:get()
+    local nl_distance = nick.ref.world.distance
+
+    local dist = nick.math_new_lerp("thrid_camera", thrid_person and distance or 0, globals.frametime * 15)
+
+    if nick.elements.thridperson.animation:get() then
+        nl_distance:set(dist)
+    else
+        nl_distance:set(distance)
+    end
+
 end
 
 nick.custom_viewmodel = function ()
@@ -1050,9 +1077,9 @@ nick.disable_buybot = function ()
     if not localplayer then return end
 
     if localplayer.m_iAccount <= nick.elements.disable_buybot.money:get() then
-        nick.ref.misc.buybot:override(false)
+        nick.ref.misc.buybot_enabled:override(false)
     else
-        nick.ref.misc.buybot:override()
+        nick.ref.misc.buybot_enabled:override(nil)
     end
 end
 
@@ -1167,17 +1194,18 @@ nick.plist = function ()
     end
 
     nick.update_override_state()
+    
     for player_name, switch in pairs(nick.whilelist_switches) do
-        if switch:get() then
-            for _, player in ipairs(players) do
-                if player:get_name() == player_name then
-                    player.m_iHealth = 0
-                end
-            end
-        else
-            for _, player in ipairs(players) do
-                if player:get_name() == player_name then
-                    player.m_iHealth = 100
+        for _, player in ipairs(players) do
+            if player:get_name() == player_name then
+                if switch:get() then
+                    if player.m_iHealth ~= 0 then
+                        player.m_iHealth = 0
+                    end
+                else
+                    if player.m_iHealth == 0 then
+                        player.m_iHealth = 100
+                    end
                 end
             end
         end
@@ -1198,7 +1226,7 @@ end)
 
 local http = http_lib.new({
     task_interval = 0.3, -- polling intervals
-    enable_debug = true, -- print http request s to the console
+    enable_debug = false, -- print http request s to the console
     timeout = 10 -- request expiration time
 })
 
@@ -1235,6 +1263,7 @@ end)
 
 events.render:set(function()
     nick.menu_visible()
+    nick.thrid_person_camera()
     nick.debug_mode()
     nick.indicator()
     nick.modifier()
