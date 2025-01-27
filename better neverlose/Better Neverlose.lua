@@ -13,12 +13,12 @@
 ]]
 
 --[[ 
-    Better Neverlose Recode v5.1 - recoded
+    Better Neverlose Recode v5.1.1 - recoded
     author: xXYu3_zH3nGL1ngXx
-    Updated date: 1/21/2025
+    Updated date: 1/27/2025
 ]]
 
-local version_ = "1/21/2025 - 5.1"
+local version_ = "1/27/2025 - 5.1.1"
 local ffi = require "ffi"
 local http_lib = require "neverlose/http_lib"
 
@@ -280,7 +280,6 @@ nick.items = {
 
     misc = {
         fast_fall = nick.ref.misc.movement:switch("Fast Fall"),
-        clan_tag = nick.ref.misc.in_game:switch("Clan Tag"),
         trashtalk = nick.ref.misc.in_game:switch("Trashtalk On Kill"),
         vote_reveals = nick.ref.misc.in_game:switch("Vote reveals"),
         modifier = nick.ref.misc.other:selectable("Modifier", "Force sv_cheats 1", "Bypass sv_pure", "Performance Mode"),
@@ -308,7 +307,6 @@ nick.create_elements = {
     },
 
     misc = {
-        clan_tag = nick.items.misc.clan_tag:create(),
         trashtalk = nick.items.misc.trashtalk:create(),
         disable_buybot = nick.items.misc.disable_buybot:create(),
     },
@@ -378,12 +376,6 @@ nick.elements = {
         left = nick.create_elements.visuals.indicator:listable("Elements", {"Double Tap & Hide Shots", "Fake Duck", "DA", "AX", "DMG", "HC", "LC"}),
     },
 
-    clan_tag ={
-        style = nick.create_elements.misc.clan_tag:combo("Style", "Neverlose", "Custom"),
-        text = nick.create_elements.misc.clan_tag:input("Text"),
-        custom_style = nick.create_elements.misc.clan_tag:combo("Custom style", "Static", "Roll"),
-        speed = nick.create_elements.misc.clan_tag:slider("Speed", 0, 100, 50),
-    },
 
     trashtalk = {
         text = nick.create_elements.misc.trashtalk:input("Text"),
@@ -477,10 +469,6 @@ nick.menu_visible = function ()
     nick.elements.event_sound.miss_file:visibility(nick.elements.event_sound.event:get("Missed shot"))
     nick.elements.event_sound.taser_file:visibility(nick.elements.event_sound.event:get("Taser kill"))
 
-    nick.ref.misc.clan_tag:visibility(false)
-    nick.elements.clan_tag.text:visibility(nick.elements.clan_tag.style:get() == "Custom")
-    nick.elements.clan_tag.custom_style:visibility(nick.elements.clan_tag.style:get() == "Custom")
-    nick.elements.clan_tag.speed:visibility(nick.elements.clan_tag.style:get() == "Custom" and nick.elements.clan_tag.custom_style:get() == "Roll")
 end
 
 ---------------------------override-----------------------
@@ -965,40 +953,6 @@ nick.fast_fall = function ()
     if nick.get_trace(75) then rage.exploit:force_teleport() end
 end
 
-nick.clan_tag = function ()
-    if not nick.items.misc.clan_tag:get() then 
-        nick.ref.misc.clan_tag:override()
-    return end
-
-    local style = nick.elements.clan_tag.style:get()
-    local text = nick.elements.clan_tag.text:get()
-    local custom_style = nick.elements.clan_tag.custom_style:get()
-    local speed = nick.elements.clan_tag.speed:get()
-
-    if style == "Neverlose" then
-        nick.ref.misc.clan_tag:override(true)
-    else
-        if custom_style == "Static" then
-            common.set_clan_tag(text)
-        elseif custom_style == "Roll" then
-            local tag_length = #text
-            local tickcount = globals.tickcount
-            local interval = math.floor(500 / speed)
-            local index = math.floor(tickcount / interval) % (tag_length * 2 + 10)
-    
-            if index >= tag_length then
-                if index < tag_length * 2 then
-                    index = tag_length
-                else
-                    index = tag_length * 2 - index + 10
-                end
-            end
-    
-            common.set_clan_tag(text:sub(1, index))
-        end
-    end
-end
-
 nick.trashtalk = function(event)
     if not nick.items.misc.trashtalk:get() then return end
 
@@ -1257,8 +1211,6 @@ events.createmove:set(function(cmd)
     nick.air_exploit()
     nick.fast_fall()
     nick.disable_buybot()
-    nick.clan_tag()
-    
 end)
 
 events.render:set(function()
