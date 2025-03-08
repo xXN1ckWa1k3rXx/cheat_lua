@@ -13,12 +13,16 @@
 ]]
 
 --[[ 
-    Better Neverlose Recode v5.1.1 - recoded
+    Better Neverlose Recode v5.1.2 - recoded
     author: xXYu3_zH3nGL1ngXx
-    Updated date: 1/27/2025
+    Updated date: 3/8/2025
 ]]
 
-local version_ = "1/27/2025 - 5.1.1"
+-- Custom clantag will readd soon
+-- but the implementation will be more complicated
+
+
+local version_ = "3/8/2025 - 5.1.2"
 local ffi = require "ffi"
 local http_lib = require "neverlose/http_lib"
 
@@ -764,6 +768,7 @@ nick.custom_viewmodel = function ()
         cvar["viewmodel_offset_x"]:int(0)
         cvar["viewmodel_offset_y"]:int(0)
         cvar["viewmodel_offset_z"]:int(0)
+        cvar["r_aspectratio"]:float(0)
         return
     end
 
@@ -1149,6 +1154,12 @@ nick.plist = function ()
 
     nick.update_override_state()
     
+    -- Look here! This is whilelist part and it show you how to work
+    -- Changed player health to zero to cheat aimbot that player is death now and skip this target
+    -- Due to it is only modified in local so it doesn't change player actual health
+    -- This means that fake health will not be sent to the server
+
+
     for player_name, switch in pairs(nick.whilelist_switches) do
         for _, player in ipairs(players) do
             if player:get_name() == player_name then
@@ -1160,6 +1171,15 @@ nick.plist = function ()
                     if player.m_iHealth == 0 then
                         player.m_iHealth = 100
                     end
+
+                    -- this I used a simple and crude way to restore it
+                    -- because the game not always sync from server
+                    -- i guess only server triggered player_hurt event then starting to sync health
+                    -- so it's get restored when player health change
+
+                    -- 100hp is the best default value. the aimbot will try its best to hit the target and will not make
+                    -- some confusing decisions due to low hp.
+                    -- except for some server will allow players to exceed 100HP
                 end
             end
         end
@@ -1242,10 +1262,11 @@ end)
 events.shutdown:set(function()
     cvar["cl_lagcompensation"]:int()
     cvar["sv_competitive_minspec"]:int()
-    cvar["viewmodel_fov"]:int()
-    cvar["viewmodel_offset_x"]:int()
-    cvar["viewmodel_offset_y"]:int()
-    cvar["viewmodel_offset_z"]:int()
+    cvar["viewmodel_fov"]:int(68)
+    cvar["viewmodel_offset_x"]:int(0)
+    cvar["viewmodel_offset_y"]:int(0)
+    cvar["viewmodel_offset_z"]:int(0)
+    cvar["r_aspectratio"]:float(0)
     cvar["sv_cheats"]:int()
     cvar["sv_pure"]:int()
     cvar["mat_queue_mode"]:int()
@@ -1253,6 +1274,8 @@ events.shutdown:set(function()
     cvar["fps_max_menu"]:int()
     cvar["@panorama_disable_blur"]:int(0)
 end)
+
+nick.custom_viewmodel()
 
 nick.items.ragebot.ax:set_callback(nick.anti_ax)
 
