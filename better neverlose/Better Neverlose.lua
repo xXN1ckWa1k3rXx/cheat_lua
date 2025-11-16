@@ -13,7 +13,7 @@
 ]]
 
 --[[ 
-    Better Neverlose Recode v5.1.2 - recoded
+    Better Neverlose Recode v5.2 - recoded
     author: xXYu3_zH3nGL1ngXx
     Updated date: 3/8/2025
 ]]
@@ -22,7 +22,7 @@
 -- but the implementation will be more complicated
 
 
-local version_ = "3/8/2025 - 5.1.2"
+local version_ = "11/16/2025 - 5.2"
 local ffi = require "ffi"
 local http_lib = require "neverlose/http_lib"
 
@@ -284,6 +284,7 @@ nick.items = {
 
     misc = {
         fast_fall = nick.ref.misc.movement:switch("Fast Fall"),
+        clan_tag = nick.ref.misc.in_game:switch("Clan Tag"),
         trashtalk = nick.ref.misc.in_game:switch("Trashtalk On Kill"),
         vote_reveals = nick.ref.misc.in_game:switch("Vote reveals"),
         modifier = nick.ref.misc.other:selectable("Modifier", "Force sv_cheats 1", "Bypass sv_pure", "Performance Mode"),
@@ -311,6 +312,7 @@ nick.create_elements = {
     },
 
     misc = {
+        clan_tag = nick.items.misc.clan_tag:create(),
         trashtalk = nick.items.misc.trashtalk:create(),
         disable_buybot = nick.items.misc.disable_buybot:create(),
     },
@@ -380,6 +382,12 @@ nick.elements = {
         left = nick.create_elements.visuals.indicator:listable("Elements", {"Double Tap & Hide Shots", "Fake Duck", "DA", "AX", "DMG", "HC", "LC"}),
     },
 
+    clan_tag ={
+        style = nick.create_elements.misc.clan_tag:combo("Style", "Neverlose", "Custom"),
+        text = nick.create_elements.misc.clan_tag:input("Text"),
+        custom_style = nick.create_elements.misc.clan_tag:combo("Custom style", "Static", "Roll", "Sway"),
+        speed = nick.create_elements.misc.clan_tag:slider("Speed", 0, 100, 50),
+    },
 
     trashtalk = {
         text = nick.create_elements.misc.trashtalk:input("Text"),
@@ -444,7 +452,7 @@ Suitable for specific situations and gameplay (e.g MM)]],
 
     plist_highlight = [[The highlight indicator is available in the ESP flags elements list of the Player enemy, which requires you to enable it manually.]],
 
-    plist_whitelist = [[Due to logic and implementation, the HP after canceling the Whitelist will return to 100HP (even if it is not 100HP now), and only the HP of the player changes (being hit or recovering HP) will it return to normal HP
+    plist_whitelist = [[It will disabled aimbot to stop shot this player.
     
 If you use Whitelist for this player, you will find that the player's HP is 0, which is normal.]]
 }
@@ -472,6 +480,11 @@ nick.menu_visible = function ()
 
     nick.elements.event_sound.miss_file:visibility(nick.elements.event_sound.event:get("Missed shot"))
     nick.elements.event_sound.taser_file:visibility(nick.elements.event_sound.event:get("Taser kill"))
+
+    nick.ref.misc.clan_tag:visibility(false)
+    nick.elements.clan_tag.text:visibility(nick.elements.clan_tag.style:get() == "Custom")
+    nick.elements.clan_tag.custom_style:visibility(nick.elements.clan_tag.style:get() == "Custom")
+    nick.elements.clan_tag.speed:visibility(nick.elements.clan_tag.style:get() == "Custom" and nick.elements.clan_tag.custom_style:get() == "Roll")
 
 end
 
@@ -1042,6 +1055,58 @@ nick.disable_buybot = function ()
     end
 end
 
+nick.clan_tag = function ()
+    if not nick.items.misc.clan_tag:get() then 
+        nick.ref.misc.clan_tag:override()
+    return end
+
+    local style = nick.elements.clan_tag.style:get()
+    local text = nick.elements.clan_tag.text:get()
+    local custom_style = nick.elements.clan_tag.custom_style:get()
+    local speed = nick.elements.clan_tag.speed:get()
+
+    if style == "Neverlose" then
+        nick.ref.misc.clan_tag:override(true)
+    else
+        if custom_style == "Static" then
+            if (globals.tickcount % 20) == 0 then -- prevent break the game
+                common.set_clan_tag(text)
+            end
+        elseif custom_style == "Roll" then
+            local text = nick.elements.clan_tag.text:get() .. "  "
+            local len = #text
+            local time = globals.realtime
+            local interval = 20 / speed
+            local index = math.floor((time / interval) % (len + 1))
+
+            local head = text:sub(index)
+            local tail = text:sub(1, index - 1)
+            local scroll = (head .. tail):sub(1, len)
+
+            if (globals.tickcount % 10) == 0 then
+                common.set_clan_tag(scroll)
+            end
+
+        elseif custom_style == "Sway" then
+            local length = #text
+            local interval = math.floor(500 / 30)
+            local index = math.floor(globals.tickcount / interval) % (length * 2 + 10)
+    
+            if index >= length then
+                if index < length * 2 then
+                    index = length
+                else
+                    index = length * 2 - index + 10
+                end
+            end
+    
+            if (globals.tickcount % 10) == 0 then
+                common.set_clan_tag(text:sub(1, index))
+            end          
+        end
+    end
+end
+
 -- Create switches for each player
 nick.highlight_switches = {}
 nick.safepoint_switches = {}
@@ -1163,23 +1228,20 @@ nick.plist = function ()
     for player_name, switch in pairs(nick.whilelist_switches) do
         for _, player in ipairs(players) do
             if player:get_name() == player_name then
+
                 if switch:get() then
                     if player.m_iHealth ~= 0 then
                         player.m_iHealth = 0
                     end
                 else
                     if player.m_iHealth == 0 then
-                        player.m_iHealth = 100
+                        player.m_iHealth = player:get_resource()["m_iHealth"]
                     end
 
-                    -- this I used a simple and crude way to restore it
-                    -- because the game not always sync from server
-                    -- i guess only server triggered player_hurt event then starting to sync health
-                    -- so it's get restored when player health change
+                    -- 11/16/2025
+                    -- So i found how to restore the health
+                    -- Looks like get_resource() is sync with server and not effect from client 
 
-                    -- 100hp is the best default value. the aimbot will try its best to hit the target and will not make
-                    -- some confusing decisions due to low hp.
-                    -- except for some server will allow players to exceed 100HP
                 end
             end
         end
@@ -1196,6 +1258,14 @@ local highlight = esp.enemy:new_text("Highlight", "HIGHLIGHT", function(player)
     end
 end)
 
+local whilelist = esp.enemy:new_text("Whilelist", "WHILELIST", function(player)
+    local name = player:get_name()
+
+    if nick.whilelist_switches[name] and nick.whilelist_switches[name]:get() then
+        return "WHILELIST"
+    end
+end)
+
 ------------------------ UPDATED ----------------------------
 
 local http = http_lib.new({
@@ -1205,6 +1275,8 @@ local http = http_lib.new({
 })
 
 nick.check_update = function ()
+
+
     http:get("https://raw.githubusercontent.com/xXN1ckWa1k3rXx/cheat_lua/refs/heads/main/better%20neverlose/version.json", function(data)
         if data:success() and data.status == 200 and data.body then
             local data_decoded = json.parse(data.body)
@@ -1215,6 +1287,9 @@ nick.check_update = function ()
                 print("new version available - " .. data_decoded.version)
                 print_dev("new version available - " .. data_decoded.version)
             end
+        elseif data:success() == false then
+            print("Failed to connect github raw")
+            print_dev("Failed to connect github raw")
         end
     end)
 end
@@ -1231,6 +1306,7 @@ events.createmove:set(function(cmd)
     nick.air_exploit()
     nick.fast_fall()
     nick.disable_buybot()
+    nick.clan_tag()
 end)
 
 events.render:set(function()
