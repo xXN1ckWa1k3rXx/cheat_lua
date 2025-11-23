@@ -13,21 +13,27 @@
 ]]
 
 --[[ 
-    Better Neverlose Recode v5.2 - recoded
+    Better Neverlose Recode v5.2 
     author: xXYu3_zH3nGL1ngXx
-    Updated date: 3/8/2025
+    Updated date: 11/23/2025
 ]]
 
--- Custom clantag will readd soon
--- but the implementation will be more complicated
 
-
-local version_ = "11/16/2025 - 5.2"
+local version_ = "11/23/2025 5.2"
 local ffi = require "ffi"
 local http_lib = require "neverlose/http_lib"
+local clipboard = require "neverlose/clipboard"
 
 local nick = {}
+
 nick.data = {}
+nick.aa_ui = {}
+nick.fl_ui = {}
+
+localplayer = {}
+localplayer.packets = 0
+localplayer.choking = 1
+
 
 ----------------------- FFI CODE ---------------------
 
@@ -140,6 +146,28 @@ nick.get_trace = function (length)
     return false
 end
 
+-- {"Globals", "Standing", "Running", "Walking", "In Air", "Crouching"}
+nick.check_condition = function (ent)
+    if not ent or not ent:is_alive() then return "Globals" end
+
+    local vec = ent.m_vecVelocity
+    local velocity = math.sqrt( (vec.x * vec.x) + (vec.y * vec.y) )
+
+    if ui.find("Aimbot", "Anti Aim", "Misc", "Slow Walk"):get() then
+        return "Walking"
+    elseif ent.m_fFlags == 262 and ent.m_flDuckAmount > 0.8 then
+        return "In Air + Crouching"
+    elseif ent.m_fFlags == 256 then
+        return "In Air"
+    elseif ent.m_flDuckAmount > 0.8 then
+        return "Crouching"
+    elseif velocity <= 2 then
+        return "Standing"
+    elseif velocity >= 3 then
+        return "Running"
+    end
+end
+
 nick.math_lerp = function(a, b, percentage)
     return a + (b - a) * percentage
 end
@@ -183,6 +211,15 @@ local function open_explorer(path)
     end
 end
 
+local localplayer_update = function ()
+    local choked = globals.choked_commands
+
+    if choked == 0 then
+        localplayer.packets = localplayer.packets + 1
+        localplayer.choking = localplayer.choking * -1       
+    end
+end
+
 -- Example usage:
 -- open_explorer("C:\\Windows\\explorer.exe D:\\SteamLibrary\\steamapps\\common\\Counter-Strike Global Offensive\\nl\\scripts")
 
@@ -208,19 +245,44 @@ nick.ref = {
     
     antiaim = {
         angles = ui.find("Aimbot", "Anti Aim", "Angles"),
+        enabled = ui.find("Aimbot", "Anti Aim", "Angles", "Enabled"),
         pitch = ui.find("Aimbot", "Anti Aim", "Angles", "Pitch"),
         yaw = ui.find("Aimbot", "Anti Aim", "Angles", "Yaw"),
         base = ui.find("Aimbot", "Anti Aim", "Angles", "Yaw", "Base"),
-        offset = ui.find("Aimbot", "Anti Aim", "Angles", "Yaw", "Offset"),
-        fakelag = ui.find("Aimbot", "Anti Aim", "Fake Lag"),
-        misc = ui.find("Aimbot", "Anti Aim", "Misc"),
+        base_settings = {
+            offset = ui.find("Aimbot", "Anti Aim", "Angles", "Yaw", "Offset"),
+            avoid_backstab = ui.find("Aimbot", "Anti Aim", "Angles", "Yaw", "Avoid Backstab"),
+            hidden = ui.find("Aimbot", "Anti Aim", "Angles", "Yaw", "Hidden"),
+        },
+
+        yaw_modifier = ui.find("Aimbot", "Anti Aim", "Angles", "Yaw Modifier"),
+        modifier_offset = ui.find("Aimbot", "Anti Aim", "Angles", "Yaw Modifier", "Offset"),
         bodyyaw = ui.find("Aimbot", "Anti Aim", "Angles", "Body Yaw"),
+        bodyyaw_settings = {
+            inverter = ui.find("Aimbot", "Anti Aim", "Angles", "Body Yaw", "Inverter"),
+            left = ui.find("Aimbot", "Anti Aim", "Angles", "Body Yaw", "Left Limit"),
+            right = ui.find("Aimbot", "Anti Aim", "Angles", "Body Yaw", "Right Limit"),
+            options = ui.find("Aimbot", "Anti Aim", "Angles", "Body Yaw", "Options"),
+            freestanding = ui.find("Aimbot", "Anti Aim", "Angles", "Body Yaw", "Freestanding"),
+        },
+
         fs = ui.find("Aimbot", "Anti Aim", "Angles", "Freestanding"):disabled(true),
-        fl_enabled = ui.find("Aimbot", "Anti Aim", "Fake Lag", "Enabled"),
-        aa_enabled = ui.find("Aimbot", "Anti Aim", "Angles", "Enabled"),
-        limit = ui.find("Aimbot", "Anti Aim", "Fake Lag", "Limit"),
+        extend_angles = ui.find("Aimbot", "Anti Aim", "Angles", "Extended Angles"),
+        ea_settings = {
+            pitch = ui.find("Aimbot", "Anti Aim", "Angles", "Extended Angles", "Extended Pitch"),
+            roll = ui.find("Aimbot", "Anti Aim", "Angles", "Extended Angles", "Extended Roll"),
+        },
+
+        fakelag = ui.find("Aimbot", "Anti Aim", "Fake Lag"),
+        fakelag_settings = {
+            enabled = ui.find("Aimbot", "Anti Aim", "Fake Lag", "Enabled"),
+            limit = ui.find("Aimbot", "Anti Aim", "Fake Lag", "Limit"),
+            variability = ui.find("Aimbot", "Anti Aim", "Fake Lag", "Variability"),
+        },
+
+
+        misc = ui.find("Aimbot", "Anti Aim", "Misc"),
         fd = ui.find("Aimbot", "Anti Aim", "Misc", "Fake Duck"),
-        hidden = ui.find("Aimbot", "Anti Aim", "Angles", "Yaw", "Hidden"),
         slowwalk = ui.find("Aimbot", "Anti Aim", "Misc", "Slow Walk"),
     },
 
@@ -232,6 +294,7 @@ nick.ref = {
     },
 
     misc = {
+        log = ui.find("Miscellaneous", "Main", "Other", "Log Events"),
         clan_tag = ui.find("Miscellaneous", "Main", "In-Game", "Clan Tag"),
         movement = ui.find("Miscellaneous", "Main", "Movement"),
         in_game = ui.find("Miscellaneous", "Main", "In-Game"),
@@ -249,6 +312,7 @@ nick.icons = {
     star = ui.get_icon("star"),
     branch = ui.get_icon("code-branch"),
     arrows_rotate = ui.get_icon("arrows-rotate"),
+    user_plus = ui.get_icon("user-plus"),
 }
 
 nick.items = {
@@ -288,6 +352,7 @@ nick.items = {
         trashtalk = nick.ref.misc.in_game:switch("Trashtalk On Kill"),
         vote_reveals = nick.ref.misc.in_game:switch("Vote reveals"),
         modifier = nick.ref.misc.other:selectable("Modifier", "Force sv_cheats 1", "Bypass sv_pure", "Performance Mode"),
+        log_events = nick.ref.misc.other:selectable("Log Events", {"Aimbot Shots", "Damage Dealt", "Purchases"}),
         disable_buybot = nick.ref.misc.buybot:switch("Diasbled when low money")
     }
 }
@@ -314,8 +379,17 @@ nick.create_elements = {
     misc = {
         clan_tag = nick.items.misc.clan_tag:create(),
         trashtalk = nick.items.misc.trashtalk:create(),
+        log_events = nick.items.misc.log_events:create(),
         disable_buybot = nick.items.misc.disable_buybot:create(),
     },
+}
+
+nick.create_group = {
+    antiaim = {
+        settings = ui.find("Aimbot", "Anti Aim"):create("Better Neverlose - Settings"),
+        angles = ui.find("Aimbot", "Anti Aim"):create("Better Neverlose - Angles"),
+        fakelag = ui.find("Aimbot", "Anti Aim"):create("Better Neverlose - Fakelag"),
+    }
 }
 
 nick.elements = {
@@ -395,6 +469,10 @@ nick.elements = {
         username_warm = nick.create_elements.misc.trashtalk:label("\a{Link Active}" .. nick.icons.warning .. " need to append a username just add \aDEFAULT %s\a{Link Active} above the content. The script will automatically place the username based on the content.")
     },
 
+    log_events = {
+        leagcy = nick.create_elements.misc.log_events:switch("Leagcy console logs"),
+    },
+
     disable_buybot = {
         money = nick.create_elements.misc.disable_buybot:slider("Money", 0, 16000, 3200),
     },
@@ -407,13 +485,107 @@ nick.elements = {
         nick.items.info:label("\a{Link Active}" .. nick.icons.warning .. "  Protip: Attention features tooltip. It can help you understand its work\n"),
         github = nick.items.info:button(nick.icons.github .. "  Github", function() nick.open_link("https://github.com/xXN1ckWa1k3rXx/cheat_lua") end, true),
         check_update = nick.items.info:button(nick.icons.arrows_rotate .. "  Check Update", function() nick.check_update() end, true),
+        antiaim = nick.items.info:switch(nick.icons.user_plus .. "  Enabled condition antiaim"),
     },
 
     plist = {
         list = nick.items.plist:list("Players", {"None."}),
-        update = nick.items.plist:button("Update list", function(self)
-            nick.plist()
-        end),
+    },
+
+    antiaim = {
+        other = {
+            condition = nick.create_group.antiaim.settings:combo("Condition", {"Globals", "Standing", "Running", "Walking", "In Air", "Crouching"}),
+            import = nick.create_group.antiaim.settings:button("Import AA", function() 
+                json_string = clipboard.get()
+                nick.import_config(json_string)
+            end, true),
+            export = nick.create_group.antiaim.settings:button("Export AA", function()
+                local config_json = nick.export_config()
+                clipboard.set(config_json)
+                print("Config has been copied to clipboard")
+                print_dev("Config has been copied to clipboard")
+            end, true),
+        },
+        angles = {
+            enabled = nick.create_group.antiaim.angles:switch("Enabled"),
+            builder = (function()
+                for i, v in ipairs({"Globals", "Standing", "Running", "Walking", "In Air", "Crouching"}) do
+                    local pitch_combo = nick.create_group.antiaim.angles:combo("Pitch", {"Disabled", "Down", "Fake Down", "Fake Up"})
+                    
+                    local yaw_combo = nick.create_group.antiaim.angles:combo("Yaw", {"Disabled", "Backward", "Static"})
+                    local yaw_o = yaw_combo:create()
+
+                    local modifier_combo = nick.create_group.antiaim.angles:combo("Yaw Modifier", {"Disabled", "Center", "Offset", "Random", "Spin", "3-Way", "5-Way"})
+                    local modifier_o = modifier_combo:create()
+
+                    local bodyyaw_switch = nick.create_group.antiaim.angles:switch("Body Yaw")
+                    local bodyyaw_o = bodyyaw_switch:create()
+
+                    local extend_angles_switch = nick.create_group.antiaim.angles:switch("Extended Angles")
+                    local extend_angles_o = extend_angles_switch:create()
+
+                    local defensive_switch = nick.create_group.antiaim.angles:switch("Defensive snap")
+                    local defensive_o = defensive_switch:create()
+                    
+                    nick.aa_ui[i] = {
+                        override = nick.create_group.antiaim.settings:switch(string.format("Override %s Globals", v)),
+                        pitch = pitch_combo,
+                        yaw = yaw_combo,
+                        yaw_o = yaw_o,
+                        yaw_s = {
+                            base = yaw_o:combo("Base", {"Local View", "At target"}),
+                            offset = yaw_o:slider("Offset", -180, 180, 0),
+                            avoid_backstab = yaw_o:switch("Avoid Backstab"),
+                        },
+
+                        modifier = modifier_combo,
+                        modifier_o = modifier_o,
+                        modifier_s = {
+                            offset = modifier_o:slider("Offset", -180, 180, 0),
+                        },
+
+                        bodyyaw = bodyyaw_switch,
+                        bodyyaw_o = bodyyaw_o,
+                        bodyyaw_s = {
+                            inverter = bodyyaw_o:switch("Inverter"),
+                            left = bodyyaw_o:slider("Left Limit", 0, 60, 60),
+                            right = bodyyaw_o:slider("Right Limit", 0, 60, 60),
+                            options = bodyyaw_o:selectable("Options", {"Avoid Overlap", "Jitter", "Randomized Jitter", "Anti Bruteforce"}),
+                            fs = bodyyaw_o:combo("Freestanding", {"Off", "Peek Fake", "Peek Real"}),
+                        },
+
+                        extend_angles = extend_angles_switch,
+                        extend_angles_o = extend_angles_o,
+                        extend_angles_s = {
+                            pitch = extend_angles_o:slider("Extended Pitch", -180, 180, 89),
+                            roll = extend_angles_o:slider("Extended Roll", 0, 90, 45),
+                        },
+
+                        defensive = defensive_switch,
+                        defensive_o = defensive_o,
+                        defensive_s = {
+                            pitch = defensive_o:combo("Pitch", {"Default", "Zero", "Up", "Static", "45 deg", "Jitter", "Random"}),
+                            pitch_offset = defensive_o:slider("> Pitch", -89, 89, 0),
+
+                            yaw = defensive_o:combo("Yaw", {"Default", "Static", "Backward", "Random", "Spin", "3-Way", "Side-Way", "Jitter"}),
+                            yaw_offset = defensive_o:slider("> Yaw", -180, 180, 0),
+                        },
+                    }
+                end
+            end)(),
+        },
+        fakelag = {
+            builder = (function()
+                for i, v in ipairs({"Globals", "Standing", "Running", "Walking", "In Air", "Crouching"}) do
+                    nick.fl_ui[i] = {
+                        enabled = nick.create_group.antiaim.fakelag:switch("Enabled"),
+                        limit = nick.create_group.antiaim.fakelag:slider("Limit", 1, 14, 14),
+                        variability = nick.create_group.antiaim.fakelag:slider("Variability", 0, 100, 0, 1, "%"),
+                        slient_shots = nick.create_group.antiaim.fakelag:switch("Slient Shots"),
+                    }
+                end
+            end)(),
+        },
     },
 }
 
@@ -486,6 +658,34 @@ nick.menu_visible = function ()
     nick.elements.clan_tag.custom_style:visibility(nick.elements.clan_tag.style:get() == "Custom")
     nick.elements.clan_tag.speed:visibility(nick.elements.clan_tag.style:get() == "Custom" and nick.elements.clan_tag.custom_style:get() == "Roll")
 
+    nick.ref.antiaim.angles:visibility(not nick.elements.info.antiaim:get())
+    nick.ref.antiaim.fakelag:visibility(not nick.elements.info.antiaim:get())
+    nick.create_group.antiaim.angles:visibility(nick.elements.info.antiaim:get())
+    nick.create_group.antiaim.settings:visibility(nick.elements.info.antiaim:get())
+    nick.create_group.antiaim.fakelag:visibility(nick.elements.info.antiaim:get())
+
+    for i, v in ipairs({"Globals", "Standing", "Running", "Walking", "In Air", "Crouching"}) do
+        nick.aa_ui[i].override:visibility(nick.elements.antiaim.other.condition:get() == v and nick.elements.antiaim.other.condition:get() ~= "Globals")
+        nick.aa_ui[i].pitch:visibility(nick.elements.antiaim.other.condition:get() == v)
+        nick.aa_ui[i].yaw:visibility(nick.elements.antiaim.other.condition:get() == v)
+        nick.aa_ui[i].yaw_s.base:visibility(nick.elements.antiaim.other.condition:get() == v)
+        nick.aa_ui[i].modifier:visibility(nick.elements.antiaim.other.condition:get() == v and nick.aa_ui[i].yaw:get() ~= "Disabled")
+        nick.aa_ui[i].bodyyaw:visibility(nick.elements.antiaim.other.condition:get() == v)
+        nick.aa_ui[i].extend_angles:visibility(nick.elements.antiaim.other.condition:get() == v)
+        nick.aa_ui[i].defensive:visibility(nick.elements.antiaim.other.condition:get() == v)
+
+
+        nick.aa_ui[i].defensive_s.pitch_offset:visibility(nick.aa_ui[i].defensive_s.pitch:get() == "Static" or nick.aa_ui[i].defensive_s.pitch:get() == "Jitter")
+        nick.aa_ui[i].defensive_s.yaw_offset:visibility(nick.aa_ui[i].defensive_s.yaw:get() == "Static" or nick.aa_ui[i].defensive_s.yaw:get() == "Jitter")
+
+        nick.fl_ui[i].enabled:visibility(nick.elements.antiaim.other.condition:get() == v)
+        nick.fl_ui[i].limit:visibility(nick.elements.antiaim.other.condition:get() == v)
+        nick.fl_ui[i].variability:visibility(nick.elements.antiaim.other.condition:get() == v)
+        nick.fl_ui[i].slient_shots:visibility(nick.elements.antiaim.other.condition:get() == v)
+    end
+
+    nick.ref.misc.log:visibility(false)
+    
 end
 
 ---------------------------override-----------------------
@@ -608,13 +808,16 @@ nick.global_safety = function ()
 end
 
 nick.defensive_aa = function ()
+
+    if nick.elements.info.antiaim:get() then return end -- Standalone
+
     if rage.exploit:get() ~= 1 then return end
 
     local localplayer = entity.get_local_player()
     if not localplayer then return end
 
     if not nick.items.antiaim.defensive:get() then
-        nick.ref.antiaim.hidden:override()
+        nick.ref.antiaim.base_settings.hidden:override()
         nick.ref.antiaim.fs:override()
         nick.ref.ragebot.lag_options:override()
         return
@@ -652,7 +855,7 @@ nick.defensive_aa = function ()
         ["Spin"] = (globals.tickcount * nick.elements.defensive.spin:get()) % 360 - 180
     })[yaw_settings] or 0
 
-    nick.ref.antiaim.hidden:override(true)
+    nick.ref.antiaim.base_settings.hidden:override(true)
     rage.antiaim:override_hidden_pitch(pitch_o)
     if yaw_settings ~= "Default" then
         rage.antiaim:override_hidden_yaw_offset(yaw_o)
@@ -665,7 +868,142 @@ nick.defensive_aa = function ()
     end
 end
 
+nick.antiaim = function (event)
+
+    if not nick.elements.info.antiaim:get() then 
+        nick.ref.antiaim.enabled:override()
+        nick.ref.antiaim.pitch:override()
+        nick.ref.antiaim.yaw:override()
+
+        nick.ref.antiaim.base:override()
+        nick.ref.antiaim.base_settings.offset:override()
+        nick.ref.antiaim.base_settings.avoid_backstab:override()
+
+        nick.ref.antiaim.yaw_modifier:override()
+        nick.ref.antiaim.modifier_offset:override()
+
+        nick.ref.antiaim.bodyyaw:override()
+        nick.ref.antiaim.bodyyaw_settings.inverter:override()
+        nick.ref.antiaim.bodyyaw_settings.left:override()
+        nick.ref.antiaim.bodyyaw_settings.right:override()
+        nick.ref.antiaim.bodyyaw_settings.options:override()
+        nick.ref.antiaim.bodyyaw_settings.freestanding:override()
+
+        nick.ref.antiaim.extend_angles:override()
+        nick.ref.antiaim.ea_settings.pitch:override()
+        nick.ref.antiaim.ea_settings.roll:override()
+        
+        nick.ref.antiaim.fakelag_settings.enabled:override()
+        nick.ref.antiaim.fakelag_settings.limit:override()
+        nick.ref.antiaim.fakelag_settings.variability:override()
+    return end
+
+    local lp = entity.get_local_player()
+    if not lp and not lp:is_alive() then return end
+
+    for i, v in ipairs ({"Globals", "Standing", "Running", "Walking", "In Air", "Crouching"}) do
+        if nick.check_condition(lp) == v then
+            if not nick.aa_ui[i].override:get() then i = 1 end
+
+            nick.ref.antiaim.enabled:override(nick.elements.antiaim.angles.enabled:get())
+            nick.ref.antiaim.pitch:override(nick.aa_ui[i].pitch:get())
+            nick.ref.antiaim.yaw:override(nick.aa_ui[i].yaw:get())
+
+            nick.ref.antiaim.base:override(nick.aa_ui[i].yaw_s.base:get())
+            nick.ref.antiaim.base_settings.offset:override(nick.aa_ui[i].yaw_s.offset:get())
+            nick.ref.antiaim.base_settings.avoid_backstab:override(nick.aa_ui[i].yaw_s.avoid_backstab:get())
+
+            nick.ref.antiaim.yaw_modifier:override(nick.aa_ui[i].modifier:get())
+            nick.ref.antiaim.modifier_offset:override(nick.aa_ui[i].modifier_s.offset:get())
+
+            nick.ref.antiaim.bodyyaw:override(nick.aa_ui[i].bodyyaw:get())
+            nick.ref.antiaim.bodyyaw_settings.inverter:override(nick.aa_ui[i].bodyyaw_s.inverter:get())
+            nick.ref.antiaim.bodyyaw_settings.left:override(nick.aa_ui[i].bodyyaw_s.left:get())
+            nick.ref.antiaim.bodyyaw_settings.right:override(nick.aa_ui[i].bodyyaw_s.right:get())
+            nick.ref.antiaim.bodyyaw_settings.options:override(nick.aa_ui[i].bodyyaw_s.options:get())
+            nick.ref.antiaim.bodyyaw_settings.freestanding:override(nick.aa_ui[i].bodyyaw_s.fs:get())
+
+            nick.ref.antiaim.extend_angles:override(nick.aa_ui[i].extend_angles:get())
+            nick.ref.antiaim.ea_settings.pitch:override(nick.aa_ui[i].extend_angles_s.pitch:get())
+            nick.ref.antiaim.ea_settings.roll:override(nick.aa_ui[i].extend_angles_s.roll:get())
+
+
+            -- Defensive part
+            if rage.exploit:get() then
+                if nick.aa_ui[i].defensive:get() then
+                    local pitch_settings = nick.aa_ui[i].defensive_s.pitch:get()
+                    local yaw_settings = nick.aa_ui[i].defensive_s.yaw:get()
+
+                    local pitch_offset = nick.aa_ui[i].defensive_s.pitch_offset:get()
+                    local yaw_offset = nick.aa_ui[i].defensive_s.yaw_offset:get()
+                    local flick_clock = (math.floor(globals.curtime * 10000) % 2) == 0
+
+                    local defensive_3_way = { 90, 180, -90, 180, 90 }
+
+                    -- pitch: {"Default", "Zero", "Up", "Static", "45 deg", "Jitter", "Random"}
+                    local pitch_o = ({
+                        ["Default"] = 89,
+                        ["Zero"] = 0,
+                        ["Up"] = -89,
+                        ["Static"] = pitch_offset,
+                        ["45 deg"] = utils.random_float(45, 60) * -1,
+                        ["Jitter"] = flick_clock and pitch_offset or 89,
+                        ["Random"] = utils.random_float(-89, 89),
+                    })[pitch_settings] or 0
+
+                    -- yaw: {"Default", "Static", "Backward", "Random", "Spin", "3-Way", "Side-Way", "Jitter"}
+                    local yaw_o = ({
+                        ["Default"] = nil,
+                        ["Static"] = yaw_offset,
+                        ["Backward"] = 0,
+                        ["Random"] = math.normalize_yaw(utils.random_float(-180, 180)),
+                        ["Spin"] = -180 + (globals.tickcount % 9) * 40 + utils.random_float(-30, 30),
+                        ["3-Way"] = defensive_3_way[localplayer.packets % 5 + 1] + utils.random_float(-15, 15),
+                        ["Side-Way"] = localplayer.choking * 90 + utils.random_float(-30, 30),
+                        ["Jitter"] = flick_clock and yaw_offset or 0,
+                    })[yaw_settings] or 0
+
+                    nick.ref.antiaim.base_settings.hidden:override(true)
+                    rage.antiaim:override_hidden_pitch(pitch_o)
+                    if yaw_settings ~= "Default" then
+                        rage.antiaim:override_hidden_yaw_offset(yaw_o)
+                    end
+                else
+                    nick.ref.antiaim.base_settings.hidden:override()
+                    nick.ref.antiaim.fs:override()
+                    nick.ref.ragebot.lag_options:override()
+                end
+            end
+
+
+            -- Fakelag part
+            local fakelag_limit = nick.fl_ui[i].limit:get()
+            local fakelag_variability = nick.fl_ui[i].variability:get()
+
+            nick.ref.antiaim.fakelag_settings.enabled:override(nick.fl_ui[i].enabled:get())
+            nick.ref.antiaim.fakelag_settings.limit:override(fakelag_limit)
+            nick.ref.antiaim.fakelag_settings.variability:override(fakelag_variability)
+
+            local my_weapon = lp:get_player_weapon()
+            if my_weapon then
+                if nick.fl_ui[i].slient_shots:get() then
+                    local last_shot_time = my_weapon["m_fLastShotTime"]
+                    local time_difference = globals.curtime - last_shot_time
+                    
+                    if time_difference <= 0.03 then
+                        event.no_choke = true
+                    end
+                end
+            end
+            
+        end
+    end
+end
+
 nick.slientshots = function (cmd)
+
+    if nick.elements.info.antiaim:get() then return end -- Standalone
+
     local localplayer = entity.get_local_player()
     if not localplayer then return end
 
@@ -678,18 +1016,18 @@ nick.slientshots = function (cmd)
     local time_difference = globals.curtime - last_shot_time
     local mode = nick.elements.slientshots.mode:get()
 
-    if time_difference <= 0.025 then
+    if time_difference <= 0.03 then
         if mode == "Overrides" then
             nick.ref.antiaim.bodyyaw:override(false)
-            nick.ref.antiaim.fl_enabled:override(false)
-            nick.ref.antiaim.limit:override(1)
+            nick.ref.antiaim.fakelag_settings.enabled:override(false)
+            nick.ref.antiaim.fakelag_settings.limit:override(1)
         elseif mode == "Send packets" then
             cmd.no_choke = true
         end
     else
         nick.ref.antiaim.bodyyaw:override()
-        nick.ref.antiaim.fl_enabled:override()
-        nick.ref.antiaim.limit:override()
+        nick.ref.antiaim.fakelag_settings.enabled:override()
+        nick.ref.antiaim.fakelag_settings.limit:override()
     end
 end
 
@@ -719,9 +1057,11 @@ nick.manual_aa = function ()
         fs_override = nil
     end
 
-    nick.ref.antiaim.yaw:override(yaw_override)
-    nick.ref.antiaim.base:override(base_override)
-    nick.ref.antiaim.offset:override(offset_override)
+    if manual_aa ~= "None" then
+        nick.ref.antiaim.yaw:override(yaw_override)
+        nick.ref.antiaim.base:override(base_override)
+        nick.ref.antiaim.base_settings.offset:override(offset_override)
+    end
     nick.ref.antiaim.fs:override(fs_override)
 end
 
@@ -740,12 +1080,12 @@ nick.air_exploit = function ()
     return end
 
     if nick.items.antiaim.air_exploit:get() then
-		nick.ref.antiaim.limit:override(17)
+		nick.ref.antiaim.fakelag_settings.limit:override(17)
         nick.ref.antiaim.fd:override(globals.tickcount % nick.elements.air_exploit.ticks:get() == 0 and true or false)
         reset = true
     else
         nick.ref.antiaim.fd:override(nil)
-        nick.ref.antiaim.limit:override(nil)
+        nick.ref.antiaim.fakelag_settings.limit:override(nil)
     end
 end
 
@@ -758,7 +1098,11 @@ nick.thrid_person_camera = function ()
     local dist = nick.math_new_lerp("thrid_camera", thrid_person and distance or 0, globals.frametime * 15)
 
     if nick.elements.thridperson.animation:get() then
-        nl_distance:set(dist)
+        if not entity.get_local_player() or not entity.get_local_player():is_alive() then
+            nl_distance:set(distance)
+        else
+            nl_distance:set(dist)
+        end
     else
         nl_distance:set(distance)
     end
@@ -1042,6 +1386,126 @@ nick.modifier = function ()
     end
 end
 
+nick.logs = new_class()
+    :struct 'hitgroup' {
+        [0] = "body",
+        [1] = "head",
+        [2] = "chest",
+        [3] = "stomach",
+        [4] = "left arm",
+        [5] = "right arm",
+        [6] = "left leg",
+        [7] = "right leg",
+        [8] = "neck",
+        [9] = "generic",
+        [10] = "unknown"
+    } 
+    :struct 'hitlog' {
+        hit = function (event)
+            --[[ local target = event.target
+            local nickname = target:get_name()
+            local damage = event.damage
+
+            local hitgroup_index = event.hitgroup
+            local hitgroup_name = nick.logs.hitgroup[hitgroup_index] or "unknown"
+
+            local health_remaining = entity.get(target).m_iHealth
+
+            local leagcy = nick.elements.log_events.leagcy:get()
+
+            if not nick.items.misc.log_events:get("Damage Dealt") then return end
+
+            if event.state == nil then
+                -- Hit xXN1ckWa1k3rXx in the head for 244 hp (0 remaining)
+                text = string.format("Hit %s in the %s for %s hp (%s remaining)", nickname, hitgroup_name, damage, health_remaining)
+
+                print(text)
+
+                if leagcy then
+                    print_dev(text)
+                else
+                    common.add_event(text, "check")
+                end
+                
+            end ]]
+        end,
+
+        hurt = function (event)
+            local userid = event.userid
+            local victim = entity.get(userid, true)
+            local attacker = entity.get(event.attacker, true)
+
+            local health = event.health
+            local hitgroup = nick.logs.hitgroup[event.hitgroup] or "unknown"
+            local damage = event.dmg_health
+
+            local leagcy = nick.elements.log_events.leagcy:get()
+
+            if not nick.items.misc.log_events:get("Damage Dealt") then return end
+
+            if not (attacker == entity.get_local_player()) then return end
+
+            -- Hurt xXN1ckWa1k3rXx in the generic for 32 hp (32 remainder)
+            text = string.format("Hurt %s in the %s for %s hp (%s remaining)", victim:get_name(), hitgroup, damage, health)
+
+            print(text)
+
+            if leagcy then
+                print_dev(text)
+            else
+                common.add_event(text, "check")
+            end
+        end,
+
+        miss = function (event)
+            local target = event.target
+            local nickname = target:get_name()
+
+            local hitgroup_index = event.wanted_hitgroup
+            local hitgroup_name = nick.logs.hitgroup[hitgroup_index] or "unknown"
+
+            local leagcy = nick.elements.log_events.leagcy:get()
+
+            if not nick.items.misc.log_events:get("Aimbot Shots") then return end
+
+            if event.state ~= nil then
+                -- Missed shot xXN1ckWa1k3rXx's head due to correction
+                text = string.format("Missed shot %s's %s due to %s", nickname, hitgroup_name, event.state)
+
+                print(text)
+
+                if leagcy then
+                    print_dev(text)
+                else
+                    common.add_event(text, "xmark")
+                end
+            end
+        end,
+    }
+    :struct 'purchases' {
+        main = function (event)
+            local userid = event.userid
+            local nickname = entity.get(userid, true):get_name()
+            local team = event.team
+            local weapon = event.weapon
+            local leagcy = nick.elements.log_events.leagcy:get()
+
+            text = string.format( "%s bought %s", nickname, weapon )
+
+            if not nick.items.misc.log_events:get("Purchases") then return end
+
+            print(string.format( "\a9bf0ebff%s\aDEFAULT bought \ac0ff91ff%s", nickname, weapon ))
+
+            if leagcy then
+                print_dev(text)
+            else
+                common.add_event(text, "cart-shopping")
+            end
+        end
+    }
+
+    nick.ref.misc.log:override({})
+
 nick.disable_buybot = function ()
     if not nick.items.misc.disable_buybot:get() then return end
 
@@ -1266,6 +1730,136 @@ local whilelist = esp.enemy:new_text("Whilelist", "WHILELIST", function(player)
     end
 end)
 
+-------------------------------------------------------------
+
+nick.export_config = function()
+    local config = {
+        version = version_,
+        antiaim = {},
+        fakelag = {}
+    }
+
+    for i, v in ipairs({"Globals", "Standing", "Running", "Walking", "In Air", "Crouching"}) do
+        config.antiaim[v] = {
+            override = nick.aa_ui[i].override:get(),
+            pitch = nick.aa_ui[i].pitch:get(),
+            yaw = nick.aa_ui[i].yaw:get(),
+            yaw_s = {
+                base = nick.aa_ui[i].yaw_s.base:get(),
+                offset = nick.aa_ui[i].yaw_s.offset:get(),
+                avoid_backstab = nick.aa_ui[i].yaw_s.avoid_backstab:get(),
+            },
+            modifier = nick.aa_ui[i].modifier:get(),
+            modifier_s = {
+                offset = nick.aa_ui[i].modifier_s.offset:get(),
+            },
+            bodyyaw = nick.aa_ui[i].bodyyaw:get(),
+            bodyyaw_s = {
+                inverter = nick.aa_ui[i].bodyyaw_s.inverter:get(),
+                left = nick.aa_ui[i].bodyyaw_s.left:get(),
+                right = nick.aa_ui[i].bodyyaw_s.right:get(),
+                options = nick.aa_ui[i].bodyyaw_s.options:get(),
+                fs = nick.aa_ui[i].bodyyaw_s.fs:get(),
+            },
+            extend_angles = nick.aa_ui[i].extend_angles:get(),
+            extend_angles_s = {
+                pitch = nick.aa_ui[i].extend_angles_s.pitch:get(),
+                roll = nick.aa_ui[i].extend_angles_s.roll:get(),
+            },
+            defensive = nick.aa_ui[i].defensive:get(),
+            defensive_s = {
+                pitch = nick.aa_ui[i].defensive_s.pitch:get(),
+                pitch_offset = nick.aa_ui[i].defensive_s.pitch_offset:get(),
+                yaw = nick.aa_ui[i].defensive_s.yaw:get(),
+                yaw_offset = nick.aa_ui[i].defensive_s.yaw_offset:get(),
+            },
+        }
+    end
+
+    for i, v in ipairs({"Globals", "Standing", "Running", "Walking", "In Air", "Crouching"}) do
+        config.fakelag[v] = {
+            enabled = nick.fl_ui[i].enabled:get(),
+            limit = nick.fl_ui[i].limit:get(),
+            variability = nick.fl_ui[i].variability:get(),
+            slient_shots = nick.fl_ui[i].slient_shots:get(),
+        }
+    end
+
+    return json.stringify(config)
+end
+
+nick.import_config = function(json_string)
+    local success, config = pcall(function() return json.parse(json_string) end)
+    
+    if not success or not config then
+        print("Import failed: Invalid JSON file or NOT Better Neverlose config")
+        print_dev("Import failed: Invalid JSON file or NOT Better Neverlose config")
+        return false
+    end
+
+    if config.version ~= version_ then
+        print("Warning: config version not match (" .. (config.version or "unknown") .. " vs " .. version_ .. ")")
+        print_dev("Warning: config version not match (" .. (config.version or "unknown") .. " vs " .. version_ .. ")")
+    end
+
+    for i, v in ipairs({"Globals", "Standing", "Running", "Walking", "In Air", "Crouching"}) do
+        if config.antiaim and config.antiaim[v] then
+            local data = config.antiaim[v]
+            
+            if data.override ~= nil then nick.aa_ui[i].override:set(data.override) end
+            if data.pitch ~= nil then nick.aa_ui[i].pitch:set(data.pitch) end
+            if data.yaw ~= nil then nick.aa_ui[i].yaw:set(data.yaw) end
+            
+            if data.yaw_s then
+                if data.yaw_s.base ~= nil then nick.aa_ui[i].yaw_s.base:set(data.yaw_s.base) end
+                if data.yaw_s.offset ~= nil then nick.aa_ui[i].yaw_s.offset:set(data.yaw_s.offset) end
+                if data.yaw_s.avoid_backstab ~= nil then nick.aa_ui[i].yaw_s.avoid_backstab:set(data.yaw_s.avoid_backstab) end
+            end
+            
+            if data.modifier ~= nil then nick.aa_ui[i].modifier:set(data.modifier) end
+            if data.modifier_s and data.modifier_s.offset ~= nil then nick.aa_ui[i].modifier_s.offset:set(data.modifier_s.offset) end
+            
+            if data.bodyyaw ~= nil then nick.aa_ui[i].bodyyaw:set(data.bodyyaw) end
+            if data.bodyyaw_s then
+                if data.bodyyaw_s.inverter ~= nil then nick.aa_ui[i].bodyyaw_s.inverter:set(data.bodyyaw_s.inverter) end
+                if data.bodyyaw_s.left ~= nil then nick.aa_ui[i].bodyyaw_s.left:set(data.bodyyaw_s.left) end
+                if data.bodyyaw_s.right ~= nil then nick.aa_ui[i].bodyyaw_s.right:set(data.bodyyaw_s.right) end
+                if data.bodyyaw_s.options ~= nil then nick.aa_ui[i].bodyyaw_s.options:set(data.bodyyaw_s.options) end
+                if data.bodyyaw_s.fs ~= nil then nick.aa_ui[i].bodyyaw_s.fs:set(data.bodyyaw_s.fs) end
+            end
+            
+            if data.extend_angles ~= nil then nick.aa_ui[i].extend_angles:set(data.extend_angles) end
+            if data.extend_angles_s then
+                if data.extend_angles_s.pitch ~= nil then nick.aa_ui[i].extend_angles_s.pitch:set(data.extend_angles_s.pitch) end
+                if data.extend_angles_s.roll ~= nil then nick.aa_ui[i].extend_angles_s.roll:set(data.extend_angles_s.roll) end
+            end
+            
+            if data.defensive ~= nil then nick.aa_ui[i].defensive:set(data.defensive) end
+            if data.defensive_s then
+                if data.defensive_s.pitch ~= nil then nick.aa_ui[i].defensive_s.pitch:set(data.defensive_s.pitch) end
+                if data.defensive_s.pitch_offset ~= nil then nick.aa_ui[i].defensive_s.pitch_offset:set(data.defensive_s.pitch_offset) end
+                if data.defensive_s.yaw ~= nil then nick.aa_ui[i].defensive_s.yaw:set(data.defensive_s.yaw) end
+                if data.defensive_s.yaw_offset ~= nil then nick.aa_ui[i].defensive_s.yaw_offset:set(data.defensive_s.yaw_offset) end
+            end
+        end
+    end
+
+    for i, v in ipairs({"Globals", "Standing", "Running", "Walking", "In Air", "Crouching"}) do
+        if config.fakelag and config.fakelag[v] then
+            local data = config.fakelag[v]
+            
+            if data.enabled ~= nil then nick.fl_ui[i].enabled:set(data.enabled) end
+            if data.limit ~= nil then nick.fl_ui[i].limit:set(data.limit) end
+            if data.variability ~= nil then nick.fl_ui[i].variability:set(data.variability) end
+            if data.slient_shots ~= nil then nick.fl_ui[i].slient_shots:set(data.slient_shots) end
+        end
+    end
+
+    print("Anti-Aim config loaded")
+    print_dev("Anti-Aim config loaded")
+    return true
+end
+
 ------------------------ UPDATED ----------------------------
 
 local http = http_lib.new({
@@ -1276,28 +1870,34 @@ local http = http_lib.new({
 
 nick.check_update = function ()
 
-
-    http:get("https://raw.githubusercontent.com/xXN1ckWa1k3rXx/cheat_lua/refs/heads/main/better%20neverlose/version.json", function(data)
-        if data:success() and data.status == 200 and data.body then
-            local data_decoded = json.parse(data.body)
-            if version_ == data_decoded.version then
-                print("You are using the latest version")
-                print_dev("You are using the latest version")
-            else
-                print("new version available - " .. data_decoded.version)
-                print_dev("new version available - " .. data_decoded.version)
-            end
-        elseif data:success() == false then
-            print("Failed to connect github raw")
-            print_dev("Failed to connect github raw")
-        end
-    end)
+    if string.match(version_, "Beta") then
+        print("It looks like you're using the Beta version. Update check under Beta branch is not available.")
+        print_dev("It looks like you're using the Beta version. Update check under Beta branch is not available.")
+    else
+        
+            http:get("https://raw.githubusercontent.com/xXN1ckWa1k3rXx/cheat_lua/refs/heads/main/better%20neverlose/version.json", function(data)
+                if data:success() and data.status == 200 and data.body then
+                    local data_decoded = json.parse(data.body)
+                    if version_ == data_decoded.version then
+                        print("You are using the latest version.")
+                        print_dev("You are using the latest version.")
+                    else
+                        print("new version available - " .. data_decoded.version)
+                        print_dev("new version available - " .. data_decoded.version)
+                    end
+                elseif data:success() == false then
+                    print("Failed to connect github raw")
+                    print_dev("Failed to connect github raw")
+                end
+            end)
+    end
 end
 
 
 ------------------------ callbacks --------------------------
 
 events.createmove:set(function(cmd)
+    nick.antiaim(cmd)
     nick.os_peek()
     nick.jumpscout_fix()
     nick.defensive_aa()
@@ -1320,11 +1920,17 @@ end)
 
 events.aim_ack:set(function(event)
     nick.event_sound.main.missed(event)
+    nick.logs.hitlog.miss(event)
     nick.trashtalk(event)
+end)
+
+events.item_purchase:set(function(event)
+    nick.logs.purchases.main(event)
 end)
 
 events.player_hurt:set(function(event)
     nick.event_sound.main.taser(event)
+    nick.logs.hitlog.hurt(event)
 end)
 
 events.vote_started:set(function(event)
@@ -1333,6 +1939,10 @@ end)
 
 events.vote_cast:set(function(event)
     nick.vote_reveals_cast(event)
+end)
+
+events.net_update_end:set(function(event)
+    localplayer_update()
 end)
 
 events.shutdown:set(function()
@@ -1349,6 +1959,7 @@ events.shutdown:set(function()
     cvar["fps_max"]:int()
     cvar["fps_max_menu"]:int()
     cvar["@panorama_disable_blur"]:int(0)
+    common.set_clan_tag("")
 end)
 
 nick.custom_viewmodel()
