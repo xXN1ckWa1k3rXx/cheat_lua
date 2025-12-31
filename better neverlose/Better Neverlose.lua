@@ -13,13 +13,13 @@
 ]]
 
 --[[ 
-    Better Neverlose Recode v5.2 
+    Better Neverlose Recode v5.3 
     author: xXYu3_zH3nGL1ngXx
-    Updated date: 11/23/2025
+    Updated date: 12/31/2025
 ]]
 
 
-local version_ = "11/23/2025 5.2"
+local version_ = "5.3"
 local ffi = require "ffi"
 local http_lib = require "neverlose/http_lib"
 local clipboard = require "neverlose/clipboard"
@@ -30,10 +30,13 @@ nick.data = {}
 nick.aa_ui = {}
 nick.fl_ui = {}
 
-localplayer = {}
-localplayer.packets = 0
-localplayer.choking = 1
+localplayer_ = {}
+localplayer_.packets = 0
+localplayer_.choking = 1
 
+---------------------- local player ------------------
+
+localplayer_.ent = entity.get_local_player()
 
 ----------------------- FFI CODE ---------------------
 
@@ -105,6 +108,51 @@ ffi.cdef[[
 ]]
 
 
+------------------- Materials ------------------------
+
+local var_flags = {
+    ["DEBUG"] = 0,
+    ["NO_DEBUG_OVERRIDE"] = 1,
+    ["NO_DRAW"] = 2,
+    ["USE_IN_FILLRATE_MODE"] = 3,
+    ["VERTEXCOLOR"] = 4,
+    ["VERTEXALPHA"] = 5,
+    ["SELFILLUM"] = 6,
+    ["ADDITIVE"] = 7,
+    ["ALPHATEST"] = 8,
+    ["MULTIPASS"] = 9,
+    ["ZNEARER"] = 10,
+    ["MODEL"] = 11,
+    ["FLAT"] = 12,
+    ["NOCULL"] = 13,
+    ["NOFOG"] = 14,
+    ["IGNOREZ"] = 15,
+    ["DECAL"] = 16,
+    ["ENVMAPSPHERE"] = 17,
+    ["NOALPHAMOD"] = 18,
+    ["ENVMAPCAMERASPACE"] = 19,
+    ["BASEALPHAENVMAPMASK"] = 20,
+    ["TRANSLUCENT"] = 21,
+    ["NORMALMAPALPHAENVMAPMASK"] = 22,
+    ["NEEDS_SOFTWARE_SKINNING"] = 23,
+    ["OPAQUETEXTURE"] = 24,
+    ["ENVMAPMODE"] = 25,
+    ["SUPPRESS_DECALS"] = 26,
+    ["HALFLAMBERT"] = 27,
+    ["WIREFRAME"] = 28,
+    ["ALLOWALPHATOCOVERAGE"] = 29,
+    ["IGNORE_ALPHA_MODULATION"] = 30,
+    ["VERTEXFOG"] = 31
+}
+
+local var_flags_names = {}
+
+for var_flag_name in pairs(var_flags) do
+	var_flags_names[#var_flags_names + 1] = var_flag_name
+end
+
+table.sort(var_flags_names)
+
 
 -------------------USER FUNCTIONS---------------------
 
@@ -132,7 +180,7 @@ local PlaySound = (function()
 end)()
 
 nick.get_trace = function (length)
-    local me = entity.get_local_player()
+    local me = localplayer_.ent
     if not me then return end
 
     local x, y, z = me.m_vecOrigin.x, me.m_vecOrigin.y, me.m_vecOrigin.z
@@ -180,6 +228,14 @@ nick.math_new_lerp = function(name, value, time)
     return nick.data[name]
 end
 
+nick.ticks_switch = function (ticks, value1, value2)
+    if math.floor(globals.tickcount / ticks) % 2 == 0 then
+        return value1
+    else
+        return value2
+    end
+end
+
 nick.open_link = function (link)
     local steam_overlay_API = panorama.SteamOverlayAPI
     local open_external_browser_url = steam_overlay_API.OpenExternalBrowserURL
@@ -215,9 +271,11 @@ local localplayer_update = function ()
     local choked = globals.choked_commands
 
     if choked == 0 then
-        localplayer.packets = localplayer.packets + 1
-        localplayer.choking = localplayer.choking * -1       
+        localplayer_.packets = localplayer_.packets + 1
+        localplayer_.choking = localplayer_.choking * -1       
     end
+
+    localplayer_.ent = entity.get_local_player()
 end
 
 -- Example usage:
@@ -291,6 +349,7 @@ nick.ref = {
         other = ui.find("Visuals", "World", "Other"),
         thridperson = ui.find("Visuals", "World", "Main", "Force Thirdperson"),
         distance = ui.find("Visuals", "World", "Main", "Force Thirdperson", "Distance"),
+        ambient = ui.find("Visuals", "World", "Ambient"),
     },
 
     misc = {
@@ -333,6 +392,7 @@ nick.items = {
 
         manual = nick.ref.antiaim.misc:combo("Manual", "None", "Left", "Backward", "Right", "Forward", "Freestanding"),
         air_exploit = nick.ref.antiaim.misc:switch("Air Exploit"),
+        custom_slow_walk = nick.ref.antiaim.misc:switch("Custom slow walk"),
     },
 
     fakelag = {
@@ -343,7 +403,8 @@ nick.items = {
         viewmodel = nick.ref.world.main:switch("Custom Viewmodel"),
         debug = nick.ref.world.main:switch("\a{Link Active}".. nick.icons.warning .."  Debug"),
         event_sound = nick.ref.world.other:switch("Event sound"),
-        indicator = nick.ref.world.other:switch("Indicators")
+        indicator = nick.ref.world.other:switch("Indicators"),
+        bloom = nick.ref.world.ambient:switch("HDR Bloom"),
     },
 
     misc = {
@@ -366,6 +427,7 @@ nick.create_elements = {
         defensive = nick.items.antiaim.defensive:create(),
         slientshots = nick.items.fakelag.slientshots:create(),
         air_exploit = nick.items.antiaim.air_exploit:create(),
+        slow_walk = nick.items.antiaim.custom_slow_walk:create(),
     },
 
     visuals = {
@@ -374,6 +436,28 @@ nick.create_elements = {
         debug = nick.items.visuals.debug:create(),
         event_sound = nick.items.visuals.event_sound:create(),
         indicator = nick.items.visuals.indicator:create(),
+        bloom = nick.items.visuals.bloom:create(),
+    },
+
+    materials = {
+        enemies = {
+            model = ui.find("Visuals", "Players", "Enemies", "Chams", "Model"):create(),
+            weapon = ui.find("Visuals", "Players", "Enemies", "Chams", "Weapon"):create(),
+            history = ui.find("Visuals", "Players", "Enemies", "Chams", "History"):create(),
+            on_shot = ui.find("Visuals", "Players", "Enemies", "Chams", "On Shot"):create(),
+            ragdolls = ui.find("Visuals", "Players", "Enemies", "Chams", "Ragdolls"):create(),
+        },
+        teammates = {
+            model = ui.find("Visuals", "Players", "Teammates", "Chams", "Model"):create(),
+            weapon = ui.find("Visuals", "Players", "Teammates", "Chams", "Weapon"):create(),
+            ragdolls = ui.find("Visuals", "Players", "Teammates", "Chams", "Ragdolls"):create(),
+        },
+        localplayer = { -- cant use 'self' due to this is one of the lua key words
+            model = ui.find("Visuals", "Players", "Self", "Chams", "Model"):create(),
+            weapon = ui.find("Visuals", "Players", "Self", "Chams", "Weapon"):create(),
+            viewmodel = ui.find("Visuals", "Players", "Self", "Chams", "Viewmodel"):create(),
+            fake = ui.find("Visuals", "Players", "Self", "Chams", "Fake"):create(),
+        },
     },
 
     misc = {
@@ -502,8 +586,6 @@ nick.elements = {
             export = nick.create_group.antiaim.settings:button("Export AA", function()
                 local config_json = nick.export_config()
                 clipboard.set(config_json)
-                print("Config has been copied to clipboard")
-                print_dev("Config has been copied to clipboard")
             end, true),
         },
         angles = {
@@ -564,11 +646,13 @@ nick.elements = {
                         defensive = defensive_switch,
                         defensive_o = defensive_o,
                         defensive_s = {
-                            pitch = defensive_o:combo("Pitch", {"Default", "Zero", "Up", "Static", "45 deg", "Jitter", "Random"}),
+                            snap_mode = defensive_o:combo("Snap mode", {"Orignal", "Irregular"}),
+                            pitch = defensive_o:combo("Pitch", {"Default", "Zero", "Up", "Static", "45 deg", "Jitter", "Roll", "Random"}),
                             pitch_offset = defensive_o:slider("> Pitch", -89, 89, 0),
 
                             yaw = defensive_o:combo("Yaw", {"Default", "Static", "Backward", "Random", "Spin", "3-Way", "Side-Way", "Jitter"}),
                             yaw_offset = defensive_o:slider("> Yaw", -180, 180, 0),
+                            jitter_offset = defensive_o:slider("> Jitter", -180, 180, 0),
                         },
                     }
                 end
@@ -587,6 +671,40 @@ nick.elements = {
             end)(),
         },
     },
+
+    materials_modifier = {
+        enemies = {
+            model = nick.create_elements.materials.enemies.model:listable("Var Flags", var_flags_names),
+            weapon = nick.create_elements.materials.enemies.weapon:listable("Var Flags", var_flags_names),
+            history = nick.create_elements.materials.enemies.history:listable("Var Flags", var_flags_names),
+            on_shot = nick.create_elements.materials.enemies.on_shot:listable("Var Flags", var_flags_names),
+            ragdolls = nick.create_elements.materials.enemies.ragdolls:listable("Var Flags", var_flags_names),
+        },
+        teammates = {
+            model = nick.create_elements.materials.teammates.model:listable("Var Flags", var_flags_names),
+            weapon = nick.create_elements.materials.teammates.weapon:listable("Var Flags", var_flags_names),
+            ragdolls = nick.create_elements.materials.teammates.ragdolls:listable("Var Flags", var_flags_names),
+        },
+        localplayer = {
+            model = nick.create_elements.materials.localplayer.model:listable("Var Flags", var_flags_names),
+            weapon = nick.create_elements.materials.localplayer.weapon:listable("Var Flags", var_flags_names),
+            viewmodel = nick.create_elements.materials.localplayer.viewmodel:listable("Var Flags", var_flags_names),
+            fake = nick.create_elements.materials.localplayer.fake:listable("Var Flags", var_flags_names),
+        },
+    },
+
+    slow_walk = {
+        mode = nick.create_elements.antiaim.slow_walk:combo("Mode", {"Static", "Jitter", "Prefer Anti-Aim", "Prefer Aimbot"}),
+        speed = nick.create_elements.antiaim.slow_walk:slider("Speed", 0, 120, 100),
+        speed_2 = nick.create_elements.antiaim.slow_walk:slider("Speed #2", 0, 120, 100),
+        ticks = nick.create_elements.antiaim.slow_walk:slider("Jitter ticks", 0, 30, 10),
+    },
+
+    bloom = {
+        scale = nick.create_elements.visuals.bloom:slider("Scale", -1, 500, -1, 0.01, function (e) if e == -1 then return "Off" end end),
+        exposure = nick.create_elements.visuals.bloom:slider("Exposure", -1, 2000, -1, 0.001, function (e) if e == -1 then return "Off" end end),
+        model_ambient = nick.create_elements.visuals.bloom:slider("Model ambient", 0, 1000, -1, 0.05),
+    }
 }
 
 nick.color_picker = {
@@ -658,6 +776,10 @@ nick.menu_visible = function ()
     nick.elements.clan_tag.custom_style:visibility(nick.elements.clan_tag.style:get() == "Custom")
     nick.elements.clan_tag.speed:visibility(nick.elements.clan_tag.style:get() == "Custom" and nick.elements.clan_tag.custom_style:get() == "Roll")
 
+    nick.elements.slow_walk.speed:visibility(nick.elements.slow_walk.mode:get() == "Static" or nick.elements.slow_walk.mode:get() == "Jitter")
+    nick.elements.slow_walk.speed_2:visibility(nick.elements.slow_walk.mode:get() == "Jitter")
+    nick.elements.slow_walk.ticks:visibility(nick.elements.slow_walk.mode:get() == "Jitter")
+
     nick.ref.antiaim.angles:visibility(not nick.elements.info.antiaim:get())
     nick.ref.antiaim.fakelag:visibility(not nick.elements.info.antiaim:get())
     nick.create_group.antiaim.angles:visibility(nick.elements.info.antiaim:get())
@@ -677,6 +799,7 @@ nick.menu_visible = function ()
 
         nick.aa_ui[i].defensive_s.pitch_offset:visibility(nick.aa_ui[i].defensive_s.pitch:get() == "Static" or nick.aa_ui[i].defensive_s.pitch:get() == "Jitter")
         nick.aa_ui[i].defensive_s.yaw_offset:visibility(nick.aa_ui[i].defensive_s.yaw:get() == "Static" or nick.aa_ui[i].defensive_s.yaw:get() == "Jitter")
+        nick.aa_ui[i].defensive_s.jitter_offset:visibility(nick.aa_ui[i].defensive_s.yaw:get() == "Jitter")
 
         nick.fl_ui[i].enabled:visibility(nick.elements.antiaim.other.condition:get() == v)
         nick.fl_ui[i].limit:visibility(nick.elements.antiaim.other.condition:get() == v)
@@ -739,7 +862,7 @@ nick.anti_ax = function ()
 end
 
 nick.os_peek = function ()
-    local localplayer = entity.get_local_player()
+    local localplayer = localplayer_.ent
     if not localplayer then return end
 
     local my_weapon = localplayer:get_player_weapon()
@@ -769,7 +892,7 @@ nick.os_peek = function ()
 end
 
 nick.jumpscout_fix = function ()
-    local localplayer = entity.get_local_player()
+    local localplayer = localplayer_.ent
     if not localplayer then return end
 
     nick.ref.misc.air_strafe:override(nil)
@@ -813,7 +936,7 @@ nick.defensive_aa = function ()
 
     if rage.exploit:get() ~= 1 then return end
 
-    local localplayer = entity.get_local_player()
+    local localplayer = localplayer_.ent
     if not localplayer then return end
 
     if not nick.items.antiaim.defensive:get() then
@@ -898,7 +1021,7 @@ nick.antiaim = function (event)
         nick.ref.antiaim.fakelag_settings.variability:override()
     return end
 
-    local lp = entity.get_local_player()
+    local lp = localplayer_.ent
     if not lp and not lp:is_alive() then return end
 
     for i, v in ipairs ({"Globals", "Standing", "Running", "Walking", "In Air", "Crouching"}) do
@@ -936,9 +1059,15 @@ nick.antiaim = function (event)
 
                     local pitch_offset = nick.aa_ui[i].defensive_s.pitch_offset:get()
                     local yaw_offset = nick.aa_ui[i].defensive_s.yaw_offset:get()
+                    local jitter_offset = nick.aa_ui[i].defensive_s.jitter_offset:get()
                     local flick_clock = (math.floor(globals.curtime * 10000) % 2) == 0
 
                     local defensive_3_way = { 90, 180, -90, 180, 90 }
+
+                    if nick.aa_ui[i].defensive_s.snap_mode:get() == "Irregular" then
+                        randomValue = utils.random_int(0, 90)
+                        nick.ref.ragebot.lag_options:override((randomValue >= 10 and randomValue <= 80) and "Always On" or "Disabled")
+                    end
 
                     -- pitch: {"Default", "Zero", "Up", "Static", "45 deg", "Jitter", "Random"}
                     local pitch_o = ({
@@ -948,6 +1077,9 @@ nick.antiaim = function (event)
                         ["Static"] = pitch_offset,
                         ["45 deg"] = utils.random_float(45, 60) * -1,
                         ["Jitter"] = flick_clock and pitch_offset or 89,
+                        ["Roll"] = (function()
+                            return 89 - (math.floor(globals.framecount) % 179)
+                        end)(),
                         ["Random"] = utils.random_float(-89, 89),
                     })[pitch_settings] or 0
 
@@ -958,9 +1090,9 @@ nick.antiaim = function (event)
                         ["Backward"] = 0,
                         ["Random"] = math.normalize_yaw(utils.random_float(-180, 180)),
                         ["Spin"] = -180 + (globals.tickcount % 9) * 40 + utils.random_float(-30, 30),
-                        ["3-Way"] = defensive_3_way[localplayer.packets % 5 + 1] + utils.random_float(-15, 15),
-                        ["Side-Way"] = localplayer.choking * 90 + utils.random_float(-30, 30),
-                        ["Jitter"] = flick_clock and yaw_offset or 0,
+                        ["3-Way"] = defensive_3_way[localplayer_.packets % 5 + 1] + utils.random_float(-15, 15),
+                        ["Side-Way"] = localplayer_.choking * 90 + utils.random_float(-30, 30),
+                        ["Jitter"] = flick_clock and yaw_offset or jitter_offset,
                     })[yaw_settings] or 0
 
                     nick.ref.antiaim.base_settings.hidden:override(true)
@@ -1004,7 +1136,7 @@ nick.slientshots = function (cmd)
 
     if nick.elements.info.antiaim:get() then return end -- Standalone
 
-    local localplayer = entity.get_local_player()
+    local localplayer = localplayer_.ent
     if not localplayer then return end
 
     local my_weapon = localplayer:get_player_weapon()
@@ -1066,7 +1198,7 @@ nick.manual_aa = function ()
 end
 
 nick.air_exploit = function ()
-    local localplayer = entity.get_local_player()
+    local localplayer = localplayer_.ent
     if not localplayer then return end
 
     reset = false
@@ -1098,7 +1230,7 @@ nick.thrid_person_camera = function ()
     local dist = nick.math_new_lerp("thrid_camera", thrid_person and distance or 0, globals.frametime * 15)
 
     if nick.elements.thridperson.animation:get() then
-        if not entity.get_local_player() or not entity.get_local_player():is_alive() then
+        if not localplayer_.ent or not localplayer_.ent:is_alive() then
             nl_distance:set(distance)
         else
             nl_distance:set(dist)
@@ -1165,9 +1297,9 @@ nick.debug_mode = function ()  -- not for debug this script
         end
     end
 
-    if not entity.get_local_player() then return end
+    if not localplayer_.ent then return end
     if not globals.is_in_game or not globals.is_connected then return end
-    local DesyncAngle = math.ceil(math.abs(normalize_yaw(entity.get_local_player():get_anim_state().eye_yaw % 360 - math.floor(entity.get_local_player():get_anim_state().abs_yaw) % 360)))
+    local DesyncAngle = math.ceil(math.abs(normalize_yaw(localplayer_.ent:get_anim_state().eye_yaw % 360 - math.floor(localplayer_.ent:get_anim_state().abs_yaw) % 360)))
 
     local i = 0
     for element, value in pairs(elements) do
@@ -1176,13 +1308,13 @@ nick.debug_mode = function ()  -- not for debug this script
             local text = ""
             
             if element == "Feet Yaw" then
-                text = "Feet Yaw: " .. math.floor(entity.get_local_player().m_flPoseParameter[11] == nil and 0 or entity.get_local_player().m_flPoseParameter[11] * 120 - 60) or "Unknown ?"
+                text = "Feet Yaw: " .. math.floor(localplayer_.ent.m_flPoseParameter[11] == nil and 0 or localplayer_.ent.m_flPoseParameter[11] * 120 - 60) or "Unknown ?"
             elseif element == "Choked Commands" then
                 text = "Choke: " .. globals.choked_commands
             elseif element == "Real Yaw" then
-                text = "Real yaw: " .. math.floor(entity.get_local_player():get_anim_state().eye_yaw)
+                text = "Real yaw: " .. math.floor(localplayer_.ent:get_anim_state().eye_yaw)
             elseif element == "Abs Yaw" then
-                text = "Abs yaw: " .. math.floor(entity.get_local_player():get_anim_state().abs_yaw)
+                text = "Abs yaw: " .. math.floor(localplayer_.ent:get_anim_state().abs_yaw)
             elseif element == "Desync" then
                 text = "Desync: " .. DesyncAngle
             elseif element == "Threat" then
@@ -1211,7 +1343,7 @@ nick.event_sound = new_class()
         end,
 
         taser = function (event)
-            local localplayer = entity.get_local_player()
+            local localplayer = localplayer_.ent
             if not localplayer then return end
             if entity.get(event.attacker, true) ~= localplayer then return end
             if event.weapon ~= "taser" then return end
@@ -1229,14 +1361,14 @@ nick.indicator = function ()
     if not nick.items.visuals.indicator:get() then return end
 
     local x, y = render.screen_size().x, render.screen_size().y
-    local localplayer = entity.get_local_player()
+    local localplayer = localplayer_.ent
     if not localplayer then return end
 
     local elements = nick.elements.indicator.left
     local prop = localplayer["m_fFlags"]
     local inair = not (prop == 257 or prop == 263)
     local exploit_color = (rage.exploit:get() == 1) and color("#cccccd") or color(255, 0, 0, 255)
-    local slowdown = entity.get_local_player().m_flVelocityModifier
+    local slowdown = localplayer_.ent["m_flVelocityModifier"]
     local fade_factor = ((1 / .15) * globals.frametime) * 255
     local vel = localplayer.m_vecVelocity
     local speed = math.sqrt(vel.x * vel.x + vel.y * vel.y)
@@ -1257,57 +1389,63 @@ nick.indicator = function ()
         render.text(1, vector(x / 2 + 100, y / 2 - 15), color("FFFFFF"), "", "" .. ui.find("Aimbot", "Ragebot", "Selection", "Min. Damage"):get())
     end
 
-    render.shadow(vector(x/2 - 120,y / 2 - 333), vector(x/2 + 120,y / 2 - 325), color(slow_down.r, slow_down.g, slow_down.b, alpha),20,0,1)
-    render.rect_outline(vector(x/2 - 120,y / 2 - 333), vector(x/2 + 120,y / 2 - 325), color(0,0,0, alpha), 1.2, 3)
-    render.rect(vector(x/2 - 119,y / 2 - 332), vector(x/2 + slowdown * (119 - (-119)) + (-119) ,y / 2 - 326), color(slow_down.r, slow_down.g, slow_down.b, alpha), 3)
-    render.text(1, vector(x / 2, y / 2 - 345), color(slow_down.r, slow_down.g, slow_down.b, alpha), "c", ui.get_icon("triangle-exclamation") .. " Slowed Down: " .. math.floor(slowdown * 100 + 0.5) .. "%")
+    do
+        --render.shadow(vector(x/2 - 120,y / 2 - 333), vector(x/2 + 120,y / 2 - 325), color(slow_down.r, slow_down.g, slow_down.b, alpha),20,0,1)
+        render.rect(vector(x/2 - 150,y / 2 - 370), vector(x/2 + 150,y / 2 - 300), color(24, 24, 24, alpha * 0.7), 4)
+        
+        render.rect_outline(vector(x/2 - 120,y / 2 - 333), vector(x/2 + 120,y / 2 - 325), color(0,0,0, alpha), 1.2, 3)
+        render.rect(vector(x/2 - 119,y / 2 - 332), vector(x/2 + slowdown * (119 - (-119)) + (-119) ,y / 2 - 326), color(slow_down.r, slow_down.g, slow_down.b, alpha), 3)
+        render.text(1, vector(x / 2, y / 2 - 345), color(slow_down.r, slow_down.g, slow_down.b, alpha), "c", ui.get_icon("triangle-exclamation") .. " Slowed Down: " .. math.floor(slowdown * 100 + 0.5) .. "%")
+    end
 
-    if elements:get("Double Tap & Hide Shots") then
-        if nick.ref.ragebot.dt:get() then
-            draw_indicator("DT", exploit_color, offset)
-            offset = offset + 1
-        elseif nick.ref.ragebot.hs:get() then
-            draw_indicator("HS", exploit_color, offset)
+    do
+        if elements:get("Double Tap & Hide Shots") then
+            if nick.ref.ragebot.dt:get() then
+                draw_indicator("DT", exploit_color, offset)
+                offset = offset + 1
+            elseif nick.ref.ragebot.hs:get() then
+                draw_indicator("HS", exploit_color, offset)
+                offset = offset + 1
+            end
+        end
+    
+        if elements:get("Fake Duck") and nick.ref.antiaim.fd:get() then
+            draw_indicator("FD", color("#cccccd"), offset)
             offset = offset + 1
         end
-    end
-
-    if elements:get("Fake Duck") and nick.ref.antiaim.fd:get() then
-        draw_indicator("FD", color("#cccccd"), offset)
-        offset = offset + 1
-    end
-
-    if elements:get("DA") and nick.ref.ragebot.da:get() then
-        draw_indicator("DA", color("#FFD65A"), offset)
-        offset = offset + 1
-    end
-
-    if elements:get("AX") and nick.items.ragebot.ax:get() then
-        draw_indicator("AX", color("#FFD65A"), offset)
-        offset = offset + 1
-    end
-
-    if elements:get("DMG") then
-        draw_indicator("D:"..dmg, color("#cccccd"), offset)
-        offset = offset + 1
-    end
-
-    if elements:get("HC") then
-        draw_indicator("H:"..hc, color("#cccccd"), offset)
-        offset = offset + 1
-    end
-
-    if elements:get("LC") and inair then
-        local lc_color = (speed >= 270 and globals.choked_commands > 2) and color("#7fbd14") or color(255, 0, 0, 255)
-        draw_indicator("LC", lc_color, offset)
-        offset = offset + 1
+    
+        if elements:get("DA") and nick.ref.ragebot.da:get() then
+            draw_indicator("DA", color("#FFD65A"), offset)
+            offset = offset + 1
+        end
+    
+        if elements:get("AX") and nick.items.ragebot.ax:get() then
+            draw_indicator("AX", color("#FFD65A"), offset)
+            offset = offset + 1
+        end
+    
+        if elements:get("DMG") then
+            draw_indicator("D:"..dmg, color("#cccccd"), offset)
+            offset = offset + 1
+        end
+    
+        if elements:get("HC") then
+            draw_indicator("H:"..hc, color("#cccccd"), offset)
+            offset = offset + 1
+        end
+    
+        if elements:get("LC") and inair then
+            local lc_color = (speed >= 270 and globals.choked_commands > 2) and color("#7fbd14") or color(255, 0, 0, 255)
+            draw_indicator("LC", lc_color, offset)
+            offset = offset + 1
+        end
     end
 end
 
 nick.fast_fall = function ()
     if not nick.items.misc.fast_fall:get() then return end
 
-    local localplayer = entity.get_local_player()
+    local localplayer = localplayer_.ent
     if not localplayer then return end
 
     if localplayer.m_vecVelocity.z > -480 then return end
@@ -1430,7 +1568,7 @@ nick.logs = new_class()
             end ]]
         end,
 
-        hurt = function (event)
+        hurt_harmed = function (event)
             local userid = event.userid
             local victim = entity.get(userid, true)
             local attacker = entity.get(event.attacker, true)
@@ -1443,18 +1581,31 @@ nick.logs = new_class()
 
             if not nick.items.misc.log_events:get("Damage Dealt") then return end
 
-            if not (attacker == entity.get_local_player()) then return end
+            if (attacker == localplayer_.ent) then
+                -- Hurt xXN1ckWa1k3rXx in the generic for 32 hp (32 remainder)
+                text = string.format("Hurt %s in the %s for %s hp (%s remaining)", victim:get_name(), hitgroup, damage, health)
+    
+                print(text)
+                icon__ = "check"
+    
+            end
 
-            -- Hurt xXN1ckWa1k3rXx in the generic for 32 hp (32 remainder)
-            text = string.format("Hurt %s in the %s for %s hp (%s remaining)", victim:get_name(), hitgroup, damage, health)
 
-            print(text)
+            if victim == localplayer_.ent then
+                -- Harmed by xXN1ckWa1k3rXx in the generic for 1 hp
+                text = string.format("Harmed by %s in the %s for %s hp", attacker:get_name(), hitgroup, damage)
+
+                print(text)
+                icon__ = "triangle-exclamation"
+            end
 
             if leagcy then
                 print_dev(text)
             else
-                common.add_event(text, "check")
+                common.add_event(text, icon__)
             end
+
+            
         end,
 
         miss = function (event)
@@ -1509,7 +1660,7 @@ nick.logs = new_class()
 nick.disable_buybot = function ()
     if not nick.items.misc.disable_buybot:get() then return end
 
-    local localplayer = entity.get_local_player()
+    local localplayer = localplayer_.ent
     if not localplayer then return end
 
     if localplayer.m_iAccount <= nick.elements.disable_buybot.money:get() then
@@ -1598,7 +1749,7 @@ nick.plist = function ()
                 nick.bodyaim_switches[player_name] = nick.items.plist:switch("Force Body aim this player"):visibility(false)
             end
             if not nick.whilelist_switches[player_name] then
-                nick.whilelist_switches[player_name] = nick.items.plist:switch("Whitelist"):visibility(false):tooltip(nick.tooltips_text.plist_whitelist)
+                nick.whilelist_switches[player_name] = nick.items.plist:switch("Add to whitelist"):visibility(false):tooltip(nick.tooltips_text.plist_whitelist)
             end
         end
         nick.elements.plist.list:update(plist)
@@ -1730,6 +1881,214 @@ local whilelist = esp.enemy:new_text("Whilelist", "WHILELIST", function(player)
     end
 end)
 
+slow_walk_stage = 0
+
+nick.velocity_modifier = function (event, velocity)
+    local localplayer = localplayer_.ent
+    if not localplayer then return end
+
+    local velocity = velocity or 100
+    local min_speed = math.sqrt((event.forwardmove * event.forwardmove) + (event.sidemove * event.sidemove))
+	if min_speed > 0 then
+		if nick.check_condition(localplayer) == "Crouching" then
+			velocity = velocity * 2.94117647
+		end
+
+		if min_speed > velocity then
+			local speed_factor = velocity / min_speed
+            print(speed_factor)
+			event.sidemove = event.sidemove * speed_factor
+			event.forwardmove = event.forwardmove * speed_factor
+		end
+	end
+end
+
+nick.slow_walk = function (event)
+    local localplayer = localplayer_.ent
+    if not localplayer then return end
+
+    if not nick.items.antiaim.custom_slow_walk:get() then return end
+
+    local speed = nick.elements.slow_walk.speed:get()
+    local speed_2 = nick.elements.slow_walk.speed_2:get()
+    local jitter_ticks = nick.elements.slow_walk.ticks:get()
+    local mode = nick.elements.slow_walk.mode:get() -- {"Static", "Jitter", "Prefer Anti-Aim", "Prefer Aimbot"}
+
+    if mode == "Static" then
+        nick.velocity_modifier(event, speed)
+    elseif mode == "Jitter" then
+        nick.velocity_modifier(event, nick.ticks_switch(jitter_ticks, speed, speed_2))
+    elseif mode == "Prefer Anti-Aim" then
+        if event.choked_commands == 0 then
+            slow_walk_stage = slow_walk_stage + 1
+            if slow_walk_stage > 3 then
+                slow_walk_stage = 0
+            end
+        end
+
+        nick.velocity_modifier(event, (slow_walk_stage > 0 and 0 or 50))
+    else
+        nick.velocity_modifier(event, speed)
+        event.block_movement = 1
+    end
+end
+
+nick.materials_modifier = function ()
+    for category_name, category_data in pairs(nick.elements.materials_modifier) do
+        for material_name, var_flags_ref in pairs(category_data) do
+            var_flags_ref:set_callback(function(var_flags_ref)
+                local selected_var_flags = {}
+            
+                for _, selected_index in ipairs(var_flags_ref:get()) do
+                    local var_flag_name = var_flags_names[selected_index]
+                    local var_flag = var_flags[var_flag_name]
+            
+                    selected_var_flags[#selected_var_flags + 1] = var_flag
+                end
+            
+                local material_paths = {
+                    enemies = {
+                        model = "neverlose/enemy/model",
+                        weapon = "neverlose/enemy/weapon",
+                        history = "neverlose/enemy/history",
+                        on_shot = "neverlose/enemy/on_shot",
+                        ragdolls = "neverlose/enemy/ragdoll"
+                    },
+                    teammates = {
+                        model = "neverlose/teammate/model",
+                        weapon = "neverlose/teammate/weapon",
+                        ragdolls = "neverlose/teammate/ragdoll"
+                    },
+                    localplayer = {
+                        model = "neverlose/self/model",
+                        weapon = "neverlose/self/weapon",
+                        viewmodel = "neverlose/self/viewmodel",
+                        fake = "neverlose/self/fake"
+                    }
+                }
+            
+                local path = material_paths[category_name][material_name]
+                for _, mat in ipairs(materials.get_materials(path)) do
+                    for _, var_flag in pairs(var_flags) do
+                        mat:var_flag(var_flag, false)
+                    end
+            
+                    for _, var_flag in ipairs(selected_var_flags) do
+                        mat:var_flag(var_flag, true)
+                    end
+                end
+            end, true)
+        end
+    end
+end
+
+nick.bloom = function ()
+
+    local bloom_default, exposure_min_default, exposure_max_default
+    local bloom_prev, exposure_prev, model_ambient_min_prev, wallcolor_prev
+    local mat_ambient_light_r, mat_ambient_light_g, mat_ambient_light_b = cvar.mat_ambient_light_r, cvar.mat_ambient_light_g, cvar.mat_ambient_light_b
+    local r_modelAmbientMin = cvar.r_modelAmbientMin
+    local max_val = 1
+    
+    local bloom__reset = function (tone_map_controller)
+    	if bloom_default == -1 then
+    		tone_map_controller["m_bUseCustomBloomScale"] = 0
+    		tone_map_controller["m_flCustomBloomScale"] = 0
+    	else
+    		tone_map_controller["m_bUseCustomBloomScale"] = 1
+    		tone_map_controller["m_flCustomBloomScale"] = 1
+    	end
+    end
+
+    local exposure__reset = function (tone_map_controller)
+    	if exposure_min_default == -1 then
+    		tone_map_controller["m_bUseCustomAutoExposureMin"] = 0
+    		tone_map_controller["m_flCustomAutoExposureMin"] = 0
+    	else
+    		tone_map_controller["m_bUseCustomAutoExposureMin"] = 1
+    		tone_map_controller["m_flCustomAutoExposureMin"] = exposure_min_default
+    	end
+    	if exposure_max_default == -1 then
+    		tone_map_controller["m_bUseCustomAutoExposureMax"] = 0
+    		tone_map_controller["m_flCustomAutoExposureMax"] = 0
+    	else
+    		tone_map_controller["m_bUseCustomAutoExposureMax"] = 1
+    		tone_map_controller["m_flCustomAutoExposureMax"] = exposure_max_default
+    	end
+    end
+
+    local init = function ()
+
+        local bloom_active = nick.items.visuals.bloom:get()
+        
+        local model_ambient_min = nick.elements.bloom.model_ambient:get()
+
+        if bloom_active then
+            if model_ambient_min then
+                if model_ambient_min > 0 or (model_ambient_min_prev ~= nil and model_ambient_min_prev > 0) then
+                	if cvar.r_modelAmbientMin:float() ~= model_ambient_min*0.05 then
+                		cvar.r_modelAmbientMin:float(model_ambient_min*0.05, true)
+                	end
+                end
+            end
+            model_ambient_min_prev = model_ambient_min
+        else
+            cvar.r_modelAmbientMin:float(0.05, true)
+            model_ambient_min_prev = 0
+        end
+    
+        local bloom = nick.elements.bloom.scale:get()
+        local exposure = nick.elements.bloom.exposure:get()
+
+        
+    
+        if bloom ~= -1 or exposure ~= -1 or bloom_prev ~= -1 or exposure_prev ~= -1 then
+        	local tone_map_controllers = entity.get_entities("CEnvTonemapController")
+        	for i=1, #tone_map_controllers do
+        		local tone_map_controller = tone_map_controllers[i]
+        		if bloom ~= -1 then
+        			if bloom_default == nil then
+        				if tone_map_controller["m_bUseCustomBloomScale"] == 1 then
+        					bloom_default = tone_map_controller["m_flCustomBloomScale"]
+        				else
+        					bloom_default = -1
+        				end
+        			end
+        			tone_map_controller["m_bUseCustomBloomScale"] = 1
+        			tone_map_controller["m_flCustomBloomScale"] = bloom_active and bloom * 0.01 or 0
+        		elseif bloom_prev ~= nil and bloom_prev ~= -1 and bloom_default ~= nil then
+        			bloom__reset(tone_map_controller)
+        		end
+        		if exposure ~= -1 then
+        			if exposure_min_default == nil then
+        				if tone_map_controller.m_bUseCustomAutoExposureMin == 1 then
+        					exposure_min_default = tone_map_controller.m_flCustomAutoExposureMin
+        				else
+        					exposure_min_default = -1
+        				end
+        				if tone_map_controller.m_bUseCustomAutoExposureMax == 1 then
+        					exposure_max_default = tone_map_controller.m_flCustomAutoExposureMax
+        				else
+        					exposure_max_default = -1
+        				end
+        			end
+        			tone_map_controller.m_bUseCustomAutoExposureMin = 1
+        			tone_map_controller.m_bUseCustomAutoExposureMax = 1
+        			tone_map_controller.m_flCustomAutoExposureMin = math.max(0.0000, exposure*0.001) or 0
+        			tone_map_controller.m_flCustomAutoExposureMax = math.max(0.0000, exposure*0.001) or 0
+        		elseif exposure_prev ~= nil and exposure_prev ~= -1 and exposure_min_default ~= nil then
+        			exposure__reset(tone_map_controller)
+        		end
+        	end
+        end
+
+        bloom_prev = bloom
+        exposure_prev = exposure
+    end
+
+    init()
+end
+
 -------------------------------------------------------------
 
 nick.export_config = function()
@@ -1768,10 +2127,12 @@ nick.export_config = function()
             },
             defensive = nick.aa_ui[i].defensive:get(),
             defensive_s = {
+                snap_mode = nick.aa_ui[i].defensive_s.snap_mode:get(),
                 pitch = nick.aa_ui[i].defensive_s.pitch:get(),
                 pitch_offset = nick.aa_ui[i].defensive_s.pitch_offset:get(),
                 yaw = nick.aa_ui[i].defensive_s.yaw:get(),
                 yaw_offset = nick.aa_ui[i].defensive_s.yaw_offset:get(),
+                jitter_offset = nick.aa_ui[i].defensive_s.jitter_offset:get(),
             },
         }
     end
@@ -1785,6 +2146,9 @@ nick.export_config = function()
         }
     end
 
+    print("Config has been copied to clipboard.")
+    print_dev("Config has been copied to clipboard.")
+    common.add_notify("Copied", "Config has been copied to clipboard.")
     return json.stringify(config)
 end
 
@@ -1794,6 +2158,7 @@ nick.import_config = function(json_string)
     if not success or not config then
         print("Import failed: Invalid JSON file or NOT Better Neverlose config")
         print_dev("Import failed: Invalid JSON file or NOT Better Neverlose config")
+        common.add_notify("Import failed", "Invalid JSON file or NOT Better Neverlose config")
         return false
     end
 
@@ -1836,10 +2201,12 @@ nick.import_config = function(json_string)
             
             if data.defensive ~= nil then nick.aa_ui[i].defensive:set(data.defensive) end
             if data.defensive_s then
+                if data.snap_mode ~= nil then nick.aa_ui[i].defensive_s.snap_mode:set(data.defensive_s.snap_mode) end
                 if data.defensive_s.pitch ~= nil then nick.aa_ui[i].defensive_s.pitch:set(data.defensive_s.pitch) end
                 if data.defensive_s.pitch_offset ~= nil then nick.aa_ui[i].defensive_s.pitch_offset:set(data.defensive_s.pitch_offset) end
                 if data.defensive_s.yaw ~= nil then nick.aa_ui[i].defensive_s.yaw:set(data.defensive_s.yaw) end
                 if data.defensive_s.yaw_offset ~= nil then nick.aa_ui[i].defensive_s.yaw_offset:set(data.defensive_s.yaw_offset) end
+                if data.defensive_s.jitter_offset ~= nil then nick.aa_ui[i].defensive_s.jitter_offset:set(data.defensive_s.jitter_offset) end
             end
         end
     end
@@ -1857,6 +2224,7 @@ nick.import_config = function(json_string)
 
     print("Anti-Aim config loaded")
     print_dev("Anti-Aim config loaded")
+    common.add_notify("Config", "Anti-Aim config loaded")
     return true
 end
 
@@ -1907,9 +2275,13 @@ events.createmove:set(function(cmd)
     nick.fast_fall()
     nick.disable_buybot()
     nick.clan_tag()
+    nick.slow_walk(cmd)
+    nick.bloom()
 end)
 
 events.render:set(function()
+    localplayer_.ent = entity.get_local_player()
+
     nick.menu_visible()
     nick.thrid_person_camera()
     nick.debug_mode()
@@ -1930,7 +2302,7 @@ end)
 
 events.player_hurt:set(function(event)
     nick.event_sound.main.taser(event)
-    nick.logs.hitlog.hurt(event)
+    nick.logs.hitlog.hurt_harmed(event)
 end)
 
 events.vote_started:set(function(event)
@@ -1960,9 +2332,42 @@ events.shutdown:set(function()
     cvar["fps_max_menu"]:int()
     cvar["@panorama_disable_blur"]:int(0)
     common.set_clan_tag("")
+
+    nick.ref.antiaim.angles:visibility(true)
+    nick.ref.antiaim.fakelag:visibility(true)
+
+    for category_name, category_data in pairs(nick.elements.materials_modifier) do
+        for material_name, var_flags_ref in pairs(category_data) do
+            local material_paths = {
+                enemies = {
+                    model = "neverlose/enemy/model",
+                    weapon = "neverlose/enemy/weapon",
+                    history = "neverlose/enemy/history",
+                    on_shot = "neverlose/enemy/on_shot",
+                    ragdolls = "neverlose/enemy/ragdoll"
+                },
+                teammates = {
+                    model = "neverlose/teammate/model",
+                    weapon = "neverlose/teammate/weapon",
+                    ragdolls = "neverlose/teammate/ragdoll"
+                },
+                localplayer = {
+                    model = "neverlose/self/model",
+                    weapon = "neverlose/self/weapon",
+                    viewmodel = "neverlose/self/viewmodel",
+                    fake = "neverlose/self/fake"
+                }
+            }
+            local path = material_paths[category_name][material_name]
+            for _, mat in ipairs(materials.get_materials(path)) do
+                mat:reset()
+            end
+        end
+	end
 end)
 
 nick.custom_viewmodel()
+nick.materials_modifier()
 
 nick.items.ragebot.ax:set_callback(nick.anti_ax)
 
@@ -1978,3 +2383,91 @@ nick.elements.viewmodel.fov:set_callback(nick.custom_viewmodel)
 nick.elements.viewmodel.aspectratio:set_callback(nick.custom_viewmodel)
 
 nick.items.misc.modifier:set_callback(nick.modifier)
+
+
+------------------------ localization ----------------------------
+local localization = {
+    {"Anti Defensive", "\af5fd8eff反防御"},
+    {"OS Peek", "不抬头闪现Peek"},
+    {"Lag on peek", "破坏回溯闪现"},
+    {"Global Safety", "全局安全项"},
+    {"Force Safe Point", "强制安全点"},
+    {"Force Body Aim", "强制打身体"},
+    {"Only Head", "仅头部"},
+    {"Jump Scout", "跳狙"},
+    
+
+    {"Enabled", "启用"},
+    {"Pitch", "俯仰"},
+    {"Yaw", "偏航"},
+    {"Yaw Modifier", "偏航角度修改"},
+    {"Base", "基于"},
+    {"Offset", "偏移"},
+    {"Avoid Backstab", "防背刺"},
+    {"Body Yaw", "假身"},
+    {"Extended Angles", "扩展角度(大角度)"},
+    {"Defensive Anti Aim", "防御AA"},
+    {"Defensive snap", "防御AA"},
+    {"Snap mode", "激活模式"},
+    {"> Pitch", "附加俯仰角度"},
+
+    {"Manual", "手动偏航"},
+    {"Air Exploit", "卡空"},
+    {"Custom slow walk", "慢走 (支持自定义速度)"},
+    {"Mode", "模式"},
+    {"Speed", "速率"},
+    {"Speed #2", "二号速率"},
+    {"Jitter ticks", "抖动间隔"},
+
+    {"Extended Pitch", "扩展俯仰"},
+    {"Extended Roll", "倾斜角"},
+
+    {"Inverter", "反转假身"},
+    {"Left Limit", "最大角度 - 左偏航"},
+    {"Right Limit", "最大角度 - 右偏航"},
+    {"Options", "选项"},
+    {"Freestanding", "自动藏头"},
+    {"Off", "关闭"},
+    {"Peek Fake", "优先假身探出"},
+    {"Peek Real", "优先真身探出"},
+    {"Orignal", "本体"},
+    {"Irregular", "无规律"},
+
+    {"Limit", "假卡值"},
+    {"Variability", "可变率"},
+    {"Slient Shots", "隐藏射击"},
+
+    {"Animation camera", "第三人称动画"},
+    {"~ Distance", "距离"},
+    {"Custom Viewmodel", "自定义手臂位置"},
+    {"Aspect Ratio", "拉伸"},
+    {"Watermark", "水印(左下角)"},
+    {"Elements", "附加元素"},
+    {"HDR Bloom", "HDR曝光修改"},
+    {"Event sound", "事件音"},
+    {"Indicators", "指示器"},
+
+    {"Scale", "范围"},
+    {"Exposure", "曝光"},
+    {"Model ambient", "模型曝光"},
+
+    {"Event", "启用事件"},
+    {"Missed shot", "在空枪时"},
+    {"Taser kill", "电击枪电死人时"},
+    {"Missed shot - file", "空枪时 - 音频文件"},
+    {"Taser kill - file", "电人时 - 音频文件"},
+    {"Volume", "音量"},
+    {"Open sound folder", "打开音频文件夹"},
+
+    {"Crosshair", "准星指示器"},
+    {"Slow Down Indicator", "减速指示"},
+
+    {nick.icons.user_plus .. "  Enabled condition antiaim", nick.icons.user_plus .. "   启用多状态Antiaim"},
+    {"Highlight this player", "高光该玩家"},
+    {"Force Safe point this player", "对该玩家强制使用安全点"},
+    {"Force Body aim this player", "对该玩家强制瞄准身体"},
+    {"Add to whitelist", "添加至白名单"},
+}
+for _, item in ipairs(localization) do
+    ui.localize("cn", item[1], item[2])
+end
