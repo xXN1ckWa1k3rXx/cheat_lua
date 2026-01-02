@@ -1581,28 +1581,34 @@ nick.logs = new_class()
 
             if not nick.items.misc.log_events:get("Damage Dealt") then return end
 
-            if (attacker == localplayer_.ent) then
+            if (attacker:get_name() == (localplayer_.ent):get_name()) then
                 -- Hurt xXN1ckWa1k3rXx in the generic for 32 hp (32 remainder)
-                text = string.format("Hurt %s in the %s for %s hp (%s remaining)", victim:get_name(), hitgroup, damage, health)
+                text_hurt_harmed = string.format("Hurt %s in the %s for %s hp (%s remaining)", victim:get_name(), hitgroup, damage, health)
     
-                print(text)
                 icon__ = "check"
-    
+
+                print(text_hurt_harmed)
+
+                if leagcy then
+                    print_dev(text_hurt_harmed)
+                else
+                    common.add_event(text_hurt_harmed, icon__)
+                end
             end
 
-
-            if victim == localplayer_.ent then
+            if victim:get_name() == localplayer_.ent:get_name() then
                 -- Harmed by xXN1ckWa1k3rXx in the generic for 1 hp
-                text = string.format("Harmed by %s in the %s for %s hp", attacker:get_name(), hitgroup, damage)
+                text_hurt_harmed = string.format("Harmed by %s in the %s for %s hp", attacker:get_name(), hitgroup, damage)
 
-                print(text)
                 icon__ = "triangle-exclamation"
-            end
 
-            if leagcy then
-                print_dev(text)
-            else
-                common.add_event(text, icon__)
+                print(text_hurt_harmed)
+
+                if leagcy then
+                    print_dev(text_hurt_harmed)
+                else
+                    common.add_event(text_hurt_harmed, icon__)
+                end
             end
 
             
@@ -1621,14 +1627,14 @@ nick.logs = new_class()
 
             if event.state ~= nil then
                 -- Missed shot xXN1ckWa1k3rXx's head due to correction
-                text = string.format("Missed shot %s's %s due to %s", nickname, hitgroup_name, event.state)
+                text_missed = string.format("Missed shot %s's %s due to %s", nickname, hitgroup_name, event.state)
 
-                print(text)
+                print(text_missed)
 
                 if leagcy then
-                    print_dev(text)
+                    print_dev(text_missed)
                 else
-                    common.add_event(text, "xmark")
+                    common.add_event(text_missed, "xmark")
                 end
             end
         end,
@@ -1641,16 +1647,16 @@ nick.logs = new_class()
             local weapon = event.weapon
             local leagcy = nick.elements.log_events.leagcy:get()
 
-            text = string.format( "%s bought %s", nickname, weapon )
+            text_purchases = string.format( "%s bought %s", nickname, weapon )
 
             if not nick.items.misc.log_events:get("Purchases") then return end
 
             print(string.format( "\a9bf0ebff%s\aDEFAULT bought \ac0ff91ff%s", nickname, weapon ))
 
             if leagcy then
-                print_dev(text)
+                print_dev(text_purchases)
             else
-                common.add_event(text, "cart-shopping")
+                common.add_event(text_purchases, "cart-shopping")
             end
         end
     }
