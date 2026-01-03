@@ -1902,7 +1902,6 @@ nick.velocity_modifier = function (event, velocity)
 
 		if min_speed > velocity then
 			local speed_factor = velocity / min_speed
-            print(speed_factor)
 			event.sidemove = event.sidemove * speed_factor
 			event.forwardmove = event.forwardmove * speed_factor
 		end
