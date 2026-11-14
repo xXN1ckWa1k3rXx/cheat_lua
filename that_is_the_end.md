@@ -6,6 +6,9 @@ TLDR: Neverlose staffs doesn't want me hung a github link in changelog **(Do not
 On Oct 27 (UTC+8) Night, I finally finished the 5.4 version Better NL. At that time, I’ve opted to do what I’ve done in the past: add a note to the changelog—linking to the GitHub repository—to remind users that they need to perform the update themselves.
 
 And Oct 28 (UTC+8) 4:43AM, i got the email and told me the script was approved. For developer, this is good news.
+<img width="1090" height="89" alt="d83ff18fdf2835eb3f8f76a2daed539f" src="https://github.com/user-attachments/assets/579be44c-72a7-4bbb-9767-100c83e5cf27" />
+<img width="1092" height="547" alt="67e86a2e22e16927550fcbfe38e560ad" src="https://github.com/user-attachments/assets/ab887cc2-64cf-435d-a119-b124ef0a4331" />
+
 
 The reason is previous how the approval system work:
   - Script item owner edited the description, SS, including upload/changelog/update script. Market will save your change until owner's approval request.
@@ -16,7 +19,9 @@ The reason is previous how the approval system work:
 In normally, changes approved meaning the staffs or script moderator already preview and pass the changes.
 
 **BUT**, on 5:47PM, i got the email from staff notice. They told me that my script recent changelog was taken down for violating the ToS.
+<img width="1102" height="474" alt="383fec31ea61c4e4248ef9e5e8bc218e" src="https://github.com/user-attachments/assets/0b9ce1fd-6f87-4abd-a513-fbdc8abfb6b3" />
 
+<img width="967" height="310" alt="73df25cc-2f7e-4de7-9a3a-31e0823de4c7" src="https://github.com/user-attachments/assets/0dbf51a1-35d2-486e-ad24-7410adca0f6a" />
 > During review, we found content in your changelogs that violates our Terms of Service. As a result, the script has been unlisted and is no longer available.
 
 And my script was nuked on market list.
@@ -29,11 +34,15 @@ It is not that I regret this, it is because the two options lead to different ou
   - But if they **avoidable overreaction**, whole item page will be invisible. **No longer available on market list.**
 
 It's clear that is avoidable overreaction, and I opened a ticket to request that the staff make some changes. **Help me upload the latest Better Neverlose** or **Remove the latest changelog, nothing happen**. And they said: **no.**
+<img width="1349" height="210" alt="f2f31d92fbde2ae5ba1bc889261dfd25" src="https://github.com/user-attachments/assets/81565fe9-bdc3-41b8-aaf7-a29ebb8baf5e" />
+<img width="1428" height="684" alt="2de89f2feca1434ac27c335f9baef3f2" src="https://github.com/user-attachments/assets/f5af479d-b3e8-48d6-b53f-9fe97788689f" />
+
 
 ### Story time is end.
 
 # Current Neverlose? or lose?
 Now you already heard that Neverlose refresh their website, and including Lua script system, or use their word: *"Extension"*. Neverlose for Counter-Strike 2 added Lua script, which is big. [Although it was leaked before the final version](https://t.me/KuCJloTa_News/8335)
+<img width="449" height="984" alt="0d3e6db9af1fc5c73f7fdadc58619f7b" src="https://github.com/user-attachments/assets/a77076e4-17f9-443d-b3d2-5153509f7710" />
 
 But the biggest problem is here: If you want to code the Lua script and run it and upload to market. **You must pay 100NLE to unlock developer mode**
 
@@ -48,13 +57,14 @@ And I still not understand one thing is how the script priced system working by 
 Dafuq we are going on? Everything going to subscription?
 
 # Who's win?
-### Definitely Neverlose
+### Definitely Neverlose $$$
 For users: They won't need to pay 100EUR for developer tools, use the scripts on market is "freedom". But some scripts is subscription-based, They've need to consider if it worth. Yea, the 1 day can evaluate the quality of this script. But when the only available option for a script is 7d, and the NLE price is >2.5. That’s your "business"
 
 For Developers: developer also is user, like anyone need to pay 29EUR get 30days sub to access cheat. And you have to pay 100 EUR to access run local script and upload to market. One year, one major update such as API change. Oh, 29EUR again, buy a sub and update. 
 Don't talk about BS, like me open src and set as free, 29EUR + 100EUR to update a FREE scripts, we will call him a philanthropist. **Neverlose is neither worthy nor deserving of having this kind of spirit invested in it.**
 
 If you set subscription, NL will take 30% from every deals.
+<img width="1877" height="1176" alt="4d857995cc2c53ebcfdf5b51e737de3e" src="https://github.com/user-attachments/assets/7bac51d4-dbf7-46ff-b587-ef92dacb6ba4" />
 
 $ Everydeals - (Everydeals * 30\%) = yourfinalget $
 
@@ -77,5 +87,8 @@ I'm already quit the Hacker vs Hacker since 2024, like everyone ex-hvher, very b
 
 What about Better Neverlose for CS2?   **Forget about it**  
 €100 one year developer mode + €29 per 30days sub not worth it. If I really do it, still is FREE. I can't afford it. Especially when I was also hosting a BF4 server
+<img width="1224" height="1071" alt="2cd0324e8829d0db2f46cc67db8c4f93" src="https://github.com/user-attachments/assets/3d481abf-dd5f-4906-b029-2f99b729de3f" />
+*Every BF4 servers cost €2.5 per player slot, higher refresh need to add more cost*
 
 So by the end. I don't want to attention this anymore. My items all hid due to too long since this sub was active.
+<img width="1483" height="656" alt="d2c08eab5268c6f090a94e346cb3b121" src="https://github.com/user-attachments/assets/652f68f4-ec8f-45aa-9b6c-64f012f1207f" />
